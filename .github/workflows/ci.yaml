@@ -1,0 +1,76 @@
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        target:
+          - aarch64-unknown-linux-gnu
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+        platform: [ubuntu-latest]
+        include:
+          - target: x86_64-apple-darwin
+            platform: macos-latest
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: cache
+        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
+        with:
+          command: cache
+      - name: toolchain
+        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
+        with:
+          command: install-rustup
+          toolchain: stable
+          target: ${{ matrix.target }}
+      - name: build
+        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
+        with:
+          command: cargo build
+          use-cross: true
+          args: --target=${{ matrix.target }}
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: cache
+        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
+        with:
+          command: cache
+      - name: toolchain
+        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
+        with:
+          command: install-rustup
+          toolchain: stable
+          target: ${{ matrix.target }}
+      - name: install Nix
+        uses: cachix/install-nix-action@v23
+      - name: test
+        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
+        with:
+          command: cargo test
+
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: cache
+        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
+        with:
+          command: cache
+      - name: toolchain
+        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
+        with:
+          command: install-rustup
+          toolchain: stable
+          components: clippy
+      - name: test
+        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
+        with:
+          command: cargo clippy
