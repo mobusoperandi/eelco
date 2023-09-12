@@ -55,7 +55,6 @@ jobs:
         with:
           command: cargo test
 
-
   clippy:
     runs-on: ubuntu-latest
     steps:
