@@ -35,8 +35,8 @@ impl TryFrom<LFLine> for ReplQuery {
 
     fn try_from(line: LFLine) -> Result<Self, Self::Error> {
         let Option::Some(("", query)) = line.split_once("nix-repl> ") else {
-    return Err(anyhow::anyhow!("missing prompt {line:?}"));
-};
+            return Err(anyhow::anyhow!("missing prompt {line:?}"));
+        };
         Ok(Self(query.parse().unwrap()))
     }
 }
@@ -195,9 +195,14 @@ impl ReplDriver {
 
     async fn kill(&mut self, id: ExampleId) {
         let Some(session) = self.sessions.remove(&id) else {
-    self.sender.send(ReplEvent::Kill(Err(anyhow::anyhow!("no session {id:?} to kill")))).await.unwrap();
-    return;
-};
+            self.sender
+                .send(ReplEvent::Kill(Err(anyhow::anyhow!(
+                    "no session {id:?} to kill"
+                ))))
+                .await
+                .unwrap();
+            return;
+        };
         drop(session);
         self.sender.send(ReplEvent::Kill(Ok(id))).await.unwrap();
     }
