@@ -73,3 +73,18 @@ jobs:
         uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
         with:
           command: cargo clippy
+
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: toolchain
+        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
+        with:
+          command: install-rustup
+          toolchain: stable
+      - name: fmt
+        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
+        with:
+          command: cargo fmt
+          args: --check
