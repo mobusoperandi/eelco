@@ -1,3 +1,6 @@
+#![warn(clippy::cargo)]
+#![allow(clippy::multiple_crate_versions)]
+
 pub(crate) mod app;
 pub(crate) mod example_id;
 pub(crate) mod repl;

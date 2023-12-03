@@ -2,6 +2,11 @@
 name = "eelco"
 version = "0.1.0"
 edition = "2021"
+description = "Nix doctests CLI"
+license = "MIT"
+repository = "https://github.com/mobusoperandi/eelco"
+keywords = ["nix", "doctest", "cli", "documentation", "test"]
+categories = ["command-line-utilities", "development-tools::testing"]
 
 [dependencies]
 anyhow = { version = "1.0.72", features = ["backtrace"] }
