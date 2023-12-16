@@ -18,9 +18,9 @@ futures = "0.3.28"
 glob = "0.3.1"
 indoc = "2.0.3"
 itertools = "0.11.0"
+pty-process = { version = "0.4.0", features = ["async"] }
 strip-ansi-escapes = "0.1.1"
 tokio = { version = "1.29.1", features = ["macros", "rt-multi-thread", "io-util"] }
-pty-process = { version = "0.4.0", features = ["async"] }
 
 # https://github.com/doy/pty-process/pull/8
 [patch.crates-io.pty-process]
