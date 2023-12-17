@@ -8,18 +8,10 @@ on:
       - master
 
 jobs:
-  release-plz:
+  release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: google-github-actions/release-please-action@v4
         with:
-          fetch-depth: 0
-      - name: toolchain
-        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
-        with:
-          command: install-rustup
-          toolchain: stable
-      - uses: MarcoIeni/release-plz-action@v0.5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: rust
