@@ -4,7 +4,6 @@ members = ["crates/*"]
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-description = "Nix doctests CLI"
 license = "MIT"
 repository = "https://github.com/mobusoperandi/eelco"
 keywords = ["nix", "doctest", "cli", "documentation", "test"]
