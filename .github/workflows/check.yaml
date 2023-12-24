@@ -60,3 +60,16 @@ jobs:
         with:
           command: cargo fmt
           args: --check
+
+  release:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+    permissions:
+      pull-requests: write
+      contents: write
+    needs: [test, clippy, fmt]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: rust
