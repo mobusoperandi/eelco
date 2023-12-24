@@ -1,5 +1,7 @@
-[package]
-name = "eelco"
+[workspace]
+members = ["crates/*"]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2021"
 description = "Nix doctests CLI"
@@ -7,29 +9,3 @@ license = "MIT"
 repository = "https://github.com/mobusoperandi/eelco"
 keywords = ["nix", "doctest", "cli", "documentation", "test"]
 categories = ["command-line-utilities", "development-tools::testing"]
-
-[dependencies]
-anyhow = { version = "1.0.72", features = ["backtrace"] }
-camino = "1.1.6"
-clap = "4.3.21"
-comrak = "0.18.0"
-derive_more = { version = "1.0.0-beta.2", features = ["deref", "display", "into_iterator", "constructor"] }
-futures = "0.3.28"
-glob = "0.3.1"
-indoc = "2.0.3"
-itertools = "0.11.0"
-strip-ansi-escapes = "0.1.1"
-tokio = { version = "1.29.1", features = ["macros", "rt-multi-thread", "io-util"] }
-
-# https://github.com/doy/pty-process/pull/8
-[dependencies.pty-process]
-version = "0.4.0"
-features = ["async"]
-git = "https://github.com/mobusoperandi/pty-process.git"
-rev = "7889630"
-
-[dev-dependencies]
-assert_cmd = "2.0.12"
-assert_fs = "1.0.13"
-indoc = "2.0.3"
-predicates = "3.0.3"
