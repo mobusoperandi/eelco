@@ -1,12 +1,11 @@
-use assert_cmd::Command;
-use assert_fs::TempDir;
+use assert_fs::NamedTempFile;
 
-pub fn test_eelco(pattern: &str) -> (TempDir, Command) {
-    let dir = TempDir::new().unwrap();
-    let mut command = Command::cargo_bin("eelco").unwrap();
-    let path = dir.path().to_str().unwrap();
-    command
-        .current_dir(&dir)
-        .args(["nix", &format!("{path}/{pattern}")]);
-    (dir, command)
+pub fn with_eelco(f: impl FnOnce(&mut NamedTempFile, &mut assert_cmd::Command)) {
+    let mut tmpfile = NamedTempFile::new("we-dont-particularly-mind.md").unwrap();
+    let mut command = assert_cmd::Command::cargo_bin("eelco").unwrap();
+
+    command.arg("nix");
+    command.arg(tmpfile.as_os_str());
+    f(&mut tmpfile, &mut command);
+    drop(tmpfile);
 }
