@@ -3,6 +3,7 @@
 
 pub(crate) mod app;
 pub(crate) mod example_id;
+mod examples;
 pub(crate) mod repl;
 
 use clap::Parser;
@@ -26,7 +27,7 @@ struct Cli {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
-    let repl_examples = repl::example::obtain(&cli.sources)?;
+    let repl_examples = examples::obtain(&cli.sources)?;
     if repl_examples.is_empty() {
         anyhow::bail!("could not find any REPL examples");
     }
