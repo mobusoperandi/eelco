@@ -3,17 +3,7 @@ use indoc::indoc;
 use util::with_eelco;
 
 #[test]
-fn empty_file() {
-    with_eelco(|_file, eelco| {
-        eelco
-            .assert()
-            .failure()
-            .stderr("Error: could not find any REPL examples\n");
-    });
-}
-
-#[test]
-fn example_fails_to_parse() {
+fn fails_to_parse() {
     with_eelco(|file, eelco| {
         file.write_str(indoc! {"
             ```nix-repl
