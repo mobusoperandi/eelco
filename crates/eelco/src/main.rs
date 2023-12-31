@@ -4,6 +4,7 @@
 pub(crate) mod app;
 pub(crate) mod example_id;
 mod examples;
+mod expression;
 pub(crate) mod repl;
 
 use clap::Parser;
@@ -27,14 +28,14 @@ struct Cli {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
-    let repl_examples = examples::obtain(&cli.sources)?;
-    if repl_examples.is_empty() {
+    let examples = examples::obtain(&cli.sources)?;
+    if examples.is_empty() {
         anyhow::bail!("could not find any REPL examples");
     }
     let (repl_driver, repl_events) = ReplDriver::new(cli.nix_path);
 
     let inputs = Inputs {
-        repl_examples,
+        examples,
         repl_events: repl_events.boxed_local(),
     };
 

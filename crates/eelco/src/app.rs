@@ -10,7 +10,7 @@ use crate::repl::{
 use self::state::State;
 
 pub(crate) struct Inputs {
-    pub(crate) repl_examples: Vec<ReplExample>,
+    pub(crate) examples: Vec<ReplExample>,
     pub(crate) repl_events: futures::stream::LocalBoxStream<'static, ReplEvent>,
 }
 
@@ -36,7 +36,7 @@ enum InputEvent {
 
 pub(crate) fn app(inputs: Inputs) -> Outputs {
     let Inputs {
-        repl_examples,
+        examples: repl_examples,
         repl_events,
     } = inputs;
 

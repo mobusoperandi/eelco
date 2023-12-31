@@ -2,7 +2,13 @@ use crate::repl::example::ReplExample;
 use crate::repl::example::NIX_REPL_LANG_TAG;
 use itertools::Itertools;
 
-pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<ReplExample>> {
+#[derive(Debug, Clone)]
+enum Example {
+    Repl(ReplExample),
+    Expression(ExpressionExample),
+}
+
+pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
     glob::glob(glob)?
         .map(|path| {
             let path = camino::Utf8PathBuf::try_from(path?)?;
