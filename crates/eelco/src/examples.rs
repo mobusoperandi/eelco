@@ -35,7 +35,7 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
             if let comrak::nodes::NodeValue::CodeBlock(code_block) = ast.value {
                 let comrak::nodes::NodeCodeBlock { info, literal, .. } = code_block;
                 match info.split_ascii_whitespace().next() {
-                    Some(NIX_REPL_LANG_TAG) => Some((path, ast.sourcepos.start.line, literal.clone())),
+                    Some(NIX_REPL_LANG_TAG) => Some(ReplExample::try_new(path, ast.sourcepos.start.line, literal.clone()).map(Example::Repl)),
                     Some("nix"),
                     None => None,
                 }
