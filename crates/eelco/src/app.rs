@@ -4,6 +4,7 @@ use futures::{FutureExt, SinkExt, StreamExt};
 
 use crate::{
     examples::Example,
+    expression::ExpressionExample,
     repl::{
         driver::{ReplCommand, ReplEvent},
         example::ReplExample,
@@ -35,6 +36,7 @@ enum OutputEvent {
 enum InputEvent {
     ReplExample(ReplExample),
     ReplEvent(ReplEvent),
+    ExpressionExample(ExpressionExample),
 }
 
 pub(crate) fn app(inputs: Inputs) -> Outputs {
@@ -43,21 +45,20 @@ pub(crate) fn app(inputs: Inputs) -> Outputs {
         repl_events,
     } = inputs;
 
-    let repl_examples = examples.clone().iter().filter_map(|example| {
-        if let Example::Repl(example) = example {
-            Some(example.clone())
-        } else {
-            None
-        }
+    let examples = futures::stream::iter(examples).map(|example| match example {
+        Example::Repl(repl_example) => InputEvent::ReplExample(repl_example),
+        Example::Expression(expression_example) => todo!(),
     });
-
-    let repl_examples = futures::stream::iter(repl_examples).map(InputEvent::ReplExample);
     let repl_events = repl_events.map(InputEvent::ReplEvent);
 
-    // TODO expression examples
+    let expression_examples =
+        futures::stream::iter(expression_examples).map(InputEvent::ExpressionExample);
 
-    let input_events =
-        futures::stream::select_all([repl_examples.boxed_local(), repl_events.boxed_local()]);
+    let input_events = futures::stream::select_all([
+        repl_examples.boxed_local(),
+        repl_events.boxed_local(),
+        expression_examples.boxed_local(),
+    ]);
 
     let output_events = input_events
         .scan(State::default(), |state, event| {
