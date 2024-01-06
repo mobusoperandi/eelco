@@ -46,7 +46,9 @@ impl State {
         &mut self,
         expression_example: ExpressionExample,
     ) -> Result<Vec<OutputEvent>, anyhow::Error> {
-        
+        Ok(vec![OutputEvent::ExpressionCommand(EvaluateExpression(
+            expression_example,
+        ))])
     }
 
     fn repl_event_spawn(
