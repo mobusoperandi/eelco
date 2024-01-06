@@ -43,7 +43,7 @@ pub(crate) fn app(inputs: Inputs) -> Outputs {
         repl_events,
     } = inputs;
 
-    let repl_examples = examples.iter().filter_map(|example| {
+    let repl_examples = examples.clone().iter().filter_map(|example| {
         if let Example::Repl(example) = example {
             Some(example.clone())
         } else {

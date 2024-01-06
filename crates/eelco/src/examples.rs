@@ -43,14 +43,13 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                     Some("nix") => {
                         let line = ast.sourcepos.start.line;
                         let expression_example = ExpressionExample::new(path, line, literal.clone());
-                        Some(expression_example)
+                        Some(Ok(Example::Expression(expression_example)))
                     },
-                    None => None,
+                    _ => None,                    
                 }
             } else {
                 None
             }
         })
-        .map(|(path, line, contents)| ReplExample::try_new(path, line, contents))
         .try_collect()
 }
