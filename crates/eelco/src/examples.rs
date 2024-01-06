@@ -34,10 +34,10 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
         .filter_map(|(path, ast)| {
             if let comrak::nodes::NodeValue::CodeBlock(code_block) = ast.value {
                 let comrak::nodes::NodeCodeBlock { info, literal, .. } = code_block;
-                if let Some(NIX_REPL_LANG_TAG) = info.split_ascii_whitespace().next() {
-                    Some((path, ast.sourcepos.start.line, literal.clone()))
-                } else {
-                    None
+                match info.split_ascii_whitespace().next() {
+                    Some(NIX_REPL_LANG_TAG) => Some((path, ast.sourcepos.start.line, literal.clone())),
+                    Some("nix"),
+                    None => None,
                 }
             } else {
                 None
