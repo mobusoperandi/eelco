@@ -30,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     let examples = examples::obtain(&cli.sources)?;
     if examples.is_empty() {
-        anyhow::bail!("could not find any REPL examples");
+        anyhow::bail!("could not find any examples");
     }
     let (repl_driver, repl_events) = ReplDriver::new(cli.nix_path);
 
