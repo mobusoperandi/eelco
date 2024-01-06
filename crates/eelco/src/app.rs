@@ -2,15 +2,15 @@ pub(super) mod state;
 
 use futures::{FutureExt, SinkExt, StreamExt};
 
-use crate::repl::{
+use crate::{repl::{
     driver::{ReplCommand, ReplEvent},
     example::ReplExample,
-};
+}, examples::Example};
 
 use self::state::State;
 
 pub(crate) struct Inputs {
-    pub(crate) examples: Vec<ReplExample>,
+    pub(crate) examples: Vec<Example>,
     pub(crate) repl_events: futures::stream::LocalBoxStream<'static, ReplEvent>,
 }
 
@@ -36,7 +36,7 @@ enum InputEvent {
 
 pub(crate) fn app(inputs: Inputs) -> Outputs {
     let Inputs {
-        examples: repl_examples,
+        examples,
         repl_events,
     } = inputs;
 

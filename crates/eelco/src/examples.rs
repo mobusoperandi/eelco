@@ -1,9 +1,10 @@
+use crate::expression::ExpressionExample;
 use crate::repl::example::ReplExample;
 use crate::repl::example::NIX_REPL_LANG_TAG;
 use itertools::Itertools;
 
 #[derive(Debug, Clone)]
-enum Example {
+pub(crate) enum Example {
     Repl(ReplExample),
     Expression(ExpressionExample),
 }
