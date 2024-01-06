@@ -47,22 +47,24 @@ pub(crate) fn app(inputs: Inputs) -> Outputs {
 
     let examples = futures::stream::iter(examples).map(|example| match example {
         Example::Repl(repl_example) => InputEvent::ReplExample(repl_example),
-        Example::Expression(expression_example) => InputEvent::ExpressionExample(expression_example),
+        Example::Expression(expression_example) => {
+            InputEvent::ExpressionExample(expression_example)
+        }
     });
 
     let repl_events = repl_events.map(InputEvent::ReplEvent);
 
-    let input_events = futures::stream::select_all([
-        examples.boxed_local(),
-        repl_events.boxed_local(),
-    ]);
+    let input_events =
+        futures::stream::select_all([examples.boxed_local(), repl_events.boxed_local()]);
 
     let output_events = input_events
         .scan(State::default(), |state, event| {
             let output = match event {
                 InputEvent::ReplExample(repl_example) => state.repl_example(repl_example),
                 InputEvent::ReplEvent(repl_event) => state.repl_event(repl_event),
-                InputEvent::ExpressionExample(expression_example) => todo!(),
+                InputEvent::ExpressionExample(expression_example) => {
+                    state.expression_example(expression_example)
+                }
             };
 
             let output = match output {

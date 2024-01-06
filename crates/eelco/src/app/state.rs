@@ -2,6 +2,7 @@ pub(crate) mod repl_state;
 
 use crate::{
     example_id::ExampleId,
+    expression::ExpressionExample,
     repl::{
         driver::{ReplCommand, ReplEvent, ReplQuery},
         example::ReplExample,
@@ -39,6 +40,13 @@ impl State {
             ReplEvent::Kill(id) => self.repl_event_kill(id),
             ReplEvent::Read(id, result) => self.repl_event_read(id, result),
         }
+    }
+
+    pub(crate) fn expression_example(
+        &mut self,
+        expression_example: ExpressionExample,
+    ) -> Result<Vec<OutputEvent>, anyhow::Error> {
+        todo!()
     }
 
     fn repl_event_spawn(
