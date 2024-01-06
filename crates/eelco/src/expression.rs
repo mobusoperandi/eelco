@@ -1,8 +1,9 @@
-use crate::{examples::Example, example_id::ExampleId};
+use crate::example_id::ExampleId;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct ExpressionExample {
-
+    id: ExampleId,
+    expression: String
 }
 
 impl ExpressionExample {

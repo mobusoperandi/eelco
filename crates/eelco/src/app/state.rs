@@ -46,7 +46,7 @@ impl State {
         &mut self,
         expression_example: ExpressionExample,
     ) -> Result<Vec<OutputEvent>, anyhow::Error> {
-        todo!()
+        
     }
 
     fn repl_event_spawn(
