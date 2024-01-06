@@ -2,10 +2,13 @@ pub(super) mod state;
 
 use futures::{FutureExt, SinkExt, StreamExt};
 
-use crate::{repl::{
-    driver::{ReplCommand, ReplEvent},
-    example::ReplExample,
-}, examples::Example};
+use crate::{
+    examples::Example,
+    repl::{
+        driver::{ReplCommand, ReplEvent},
+        example::ReplExample,
+    },
+};
 
 use self::state::State;
 
@@ -40,8 +43,18 @@ pub(crate) fn app(inputs: Inputs) -> Outputs {
         repl_events,
     } = inputs;
 
+    let repl_examples = examples.iter().filter_map(|example| {
+        if let Example::Repl(example) = example {
+            Some(example.clone())
+        } else {
+            None
+        }
+    });
+
     let repl_examples = futures::stream::iter(repl_examples).map(InputEvent::ReplExample);
     let repl_events = repl_events.map(InputEvent::ReplEvent);
+
+    // TODO expression examples
 
     let input_events =
         futures::stream::select_all([repl_examples.boxed_local(), repl_events.boxed_local()]);
