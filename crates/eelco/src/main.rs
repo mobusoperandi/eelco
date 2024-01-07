@@ -41,7 +41,12 @@ async fn main() -> anyhow::Result<()> {
 
     let outputs = app::app(inputs);
 
-    let Outputs {repl_commands,done,execution_handle,eprintln_strings, expression_commands }
+    let Outputs {
+        repl_commands,
+        expression_commands,
+        done,
+        execution_handle,
+        eprintln_strings,
     } = outputs;
 
     let eprintln_task = eprintln_strings.for_each(|string| async move {
