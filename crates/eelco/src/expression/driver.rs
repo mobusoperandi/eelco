@@ -5,5 +5,6 @@ pub(crate) struct EvaluateExpression(pub(crate) ExpressionExample);
 
 pub(crate) enum ExpressionEvent {
   Success,
-  SuccessWithNonNull,
+  SuccessWithNonNull(String),
+
 }
