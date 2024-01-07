@@ -21,6 +21,7 @@ pub(crate) struct Inputs {
 pub(crate) struct Outputs {
     pub(crate) execution_handle: futures::future::LocalBoxFuture<'static, ()>,
     pub(crate) repl_commands: futures::stream::LocalBoxStream<'static, ReplCommand>,
+    pub(crate) expression_commands: futures::stream::LocalBoxStream<'static, EvaluateExpression>,
     pub(crate) done: futures::future::LocalBoxFuture<'static, anyhow::Result<()>>,
     pub(crate) eprintln_strings: futures::stream::LocalBoxStream<'static, String>,
 }
