@@ -1,3 +1,4 @@
 use super::ExpressionExample;
 
-pub(crate) struct EvaluateExpression(ExpressionExample);
+#[derive(Debug)]
+pub(crate) struct EvaluateExpression(pub(crate) ExpressionExample);

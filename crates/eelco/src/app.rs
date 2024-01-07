@@ -4,7 +4,7 @@ use futures::{FutureExt, SinkExt, StreamExt};
 
 use crate::{
     examples::Example,
-    expression::ExpressionExample,
+    expression::{driver::EvaluateExpression, ExpressionExample},
     repl::{
         driver::{ReplCommand, ReplEvent},
         example::ReplExample,
@@ -29,6 +29,7 @@ pub(crate) struct Outputs {
 enum OutputEvent {
     Done(anyhow::Result<()>),
     ReplCommand(ReplCommand),
+    ExpressionCommand(EvaluateExpression),
     Eprintln(String),
 }
 
@@ -78,6 +79,8 @@ pub(crate) fn app(inputs: Inputs) -> Outputs {
 
     let (eprintln_sender, eprintln_strings) = futures::channel::mpsc::unbounded::<String>();
     let (repl_commands_sender, repl_commands) = futures::channel::mpsc::unbounded::<ReplCommand>();
+    let (expression_commands_sender, expression_commands) =
+        futures::channel::mpsc::unbounded::<EvaluateExpression>();
     let (done_sender, done) = futures::channel::mpsc::unbounded::<anyhow::Result<()>>();
 
     let execution_handle = output_events.for_each(move |output_event| match output_event {
@@ -95,6 +98,13 @@ pub(crate) fn app(inputs: Inputs) -> Outputs {
             }
             .boxed_local()
         }
+        OutputEvent::ExpressionCommand(evaluate_expression) => {
+            let mut sender = expression_commands_sender.clone();
+            async move {
+                sender.send(evaluate_expression).await.unwrap();
+            }
+            .boxed_local()
+        }
         OutputEvent::Eprintln(string) => {
             let mut sender = eprintln_sender.clone();
             async move {
@@ -107,6 +117,7 @@ pub(crate) fn app(inputs: Inputs) -> Outputs {
     Outputs {
         eprintln_strings: eprintln_strings.boxed_local(),
         repl_commands: repl_commands.boxed_local(),
+        expression_commands: expression_commands.boxed_local(),
         done: done
             .into_future()
             .map(|(next_item, _tail)| next_item.unwrap())
