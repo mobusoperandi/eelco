@@ -13,7 +13,7 @@ use itertools::Itertools;
 
 use crate::{
     app::{Inputs, Outputs},
-    repl::driver::ReplDriver,
+    repl::driver::ReplDriver, expression::driver::ExpressionDriver,
 };
 
 #[derive(Debug, clap::Parser)]
