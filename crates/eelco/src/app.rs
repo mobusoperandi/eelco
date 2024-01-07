@@ -4,7 +4,10 @@ use futures::{FutureExt, SinkExt, StreamExt};
 
 use crate::{
     examples::Example,
-    expression::{driver::EvaluateExpression, ExpressionExample},
+    expression::{
+        driver::{EvaluateExpression, ExpressionResult},
+        ExpressionExample,
+    },
     repl::{
         driver::{ReplCommand, ReplEvent},
         example::ReplExample,
@@ -16,7 +19,7 @@ use self::state::State;
 pub(crate) struct Inputs {
     pub(crate) examples: Vec<Example>,
     pub(crate) repl_events: futures::stream::LocalBoxStream<'static, ReplEvent>,
-    pub(crate) expression_events: futures::stream::LocalBoxStream<'static, ExpressionEvent>,
+    pub(crate) expression_events: futures::stream::LocalBoxStream<'static, ExpressionResult>,
 }
 
 pub(crate) struct Outputs {

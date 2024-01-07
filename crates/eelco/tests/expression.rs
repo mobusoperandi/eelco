@@ -36,8 +36,9 @@ fn fail_non_null() {
 
         eelco.assert().failure().stderr(formatdoc! {r#"
             FAIL: {file_path}:1
-                returned non-null value
-                note: examples must return null
+                evaluated into non-null
+                note: examples must evaluate into null
+                value: 0
         "#});
     });
 }
