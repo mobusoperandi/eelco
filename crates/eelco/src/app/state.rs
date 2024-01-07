@@ -2,7 +2,7 @@ pub(crate) mod repl_state;
 
 use crate::{
     example_id::ExampleId,
-    expression::ExpressionExample,
+    expression::{ExpressionExample, driver::EvaluateExpression},
     repl::{
         driver::{ReplCommand, ReplEvent, ReplQuery},
         example::ReplExample,

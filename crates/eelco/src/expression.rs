@@ -1,3 +1,5 @@
+pub(crate) mod driver;
+
 use crate::example_id::ExampleId;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
