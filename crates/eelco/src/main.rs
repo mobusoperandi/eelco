@@ -33,10 +33,12 @@ async fn main() -> anyhow::Result<()> {
         anyhow::bail!("could not find any examples");
     }
     let (repl_driver, repl_events) = ReplDriver::new(cli.nix_path);
+    let (expression_driver, expression_events) = ExpressionDriver::new(cli.nix_path);
 
     let inputs = Inputs {
         examples,
         repl_events: repl_events.boxed_local(),
+        expression_events: expression_events.boxed_local(),
     };
 
     let outputs = app::app(inputs);
@@ -53,11 +55,13 @@ async fn main() -> anyhow::Result<()> {
         eprintln!("{string}");
     });
     let repl_task = repl_driver.init(repl_commands);
+    let expression_task = expression_driver.init(expression_commands);
 
     tokio::select! {
         _ = execution_handle.fuse() => unreachable!(),
         _ = eprintln_task.fuse() => unreachable!(),
         _ = repl_task.fuse() => unreachable!(),
+        _ = expression_task.fuse() => unreachable!(),
         done = done.fuse() => done,
     }
 }

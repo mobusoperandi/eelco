@@ -16,6 +16,7 @@ use self::state::State;
 pub(crate) struct Inputs {
     pub(crate) examples: Vec<Example>,
     pub(crate) repl_events: futures::stream::LocalBoxStream<'static, ReplEvent>,
+    pub(crate) expression_events: futures::stream::LocalBoxStream<'static, ExpressionEvent>,
 }
 
 pub(crate) struct Outputs {
@@ -45,6 +46,7 @@ pub(crate) fn app(inputs: Inputs) -> Outputs {
     let Inputs {
         examples,
         repl_events,
+        expression_events,
     } = inputs;
 
     let examples = futures::stream::iter(examples).map(|example| match example {
