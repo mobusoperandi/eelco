@@ -1,3 +1,5 @@
+use futures::StreamExt;
+
 use crate::example_id::ExampleId;
 
 use super::ExpressionExample;
@@ -64,4 +66,8 @@ impl ExpressionDriver {
       }
       .boxed_local()
   }
+
+    async fn command(&self, command: EvaluateExpression) {
+        todo!()
+    }
 }
