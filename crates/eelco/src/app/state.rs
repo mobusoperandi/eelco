@@ -97,7 +97,7 @@ impl State {
         let output = match &mut session_live.expecting {
             ReplSessionExpecting::Nothing => anyhow::bail!("not expecting, got {:?}", ch as char),
             ReplSessionExpecting::Prompt(acc) => {
-                acc.push(ch.try_into()?);
+                acc.push(ch.into());
                 let string = String::from_utf8(strip_ansi_escapes::strip(acc)?)?;
 
                 if string == "nix-repl> " {
@@ -112,7 +112,7 @@ impl State {
                 last_query: expected,
                 expected_result,
             } => {
-                acc.push(ch.try_into()?);
+                acc.push(ch.into());
                 if !acc.ends_with('\n') {
                     vec![]
                 } else if Self::sanitize(acc)? == expected.as_str() {
@@ -129,7 +129,7 @@ impl State {
                 acc,
                 expected_result,
             } => 'arm: {
-                acc.push(ch.try_into()?);
+                acc.push(ch.into());
 
                 let Some(stripped_crlf_once) = acc.strip_suffix("\r\n") else {
                     break 'arm vec![];
