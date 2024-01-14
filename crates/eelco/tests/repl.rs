@@ -6,11 +6,11 @@ use util::with_eelco;
 fn fails_to_parse() {
     with_eelco(|file, eelco| {
         file.write_str(indoc! {"
-            ```nix-repl
-            nix-shnepl> nope
-            dope
-            ```
-        "})
+                ```nix-repl
+                nix-shnepl> nope
+                dope
+                ```
+            "})
             .unwrap();
 
         eelco
@@ -24,12 +24,12 @@ fn fails_to_parse() {
 fn pass() {
     with_eelco(|file, eelco| {
         file.write_str(indoc! {"
-            ```nix-repl
-            nix-repl> 1 + 1
+                ```nix-repl
+                nix-repl> 1 + 1
 
-            2
-            ```
-        "})
+                2
+                ```
+            "})
             .unwrap();
 
         let file_path = file.path().to_str().unwrap();
