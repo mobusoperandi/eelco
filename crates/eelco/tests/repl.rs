@@ -1,5 +1,5 @@
 use assert_fs::prelude::FileWriteStr;
-use indoc::indoc;
+use indoc::{formatdoc, indoc};
 use util::with_eelco;
 
 #[test]
@@ -17,6 +17,29 @@ fn fails_to_parse() {
             .assert()
             .failure()
             .stderr("Error: missing prompt LFLine(\"nix-shnepl> nope\\n\")\n");
+    });
+}
+
+#[test]
+fn result_mismatch() {
+    with_eelco(|file, eelco| {
+        file.write_str(indoc! {"
+                ```nix-repl
+                nix-repl> 1 + 1
+
+                3
+                ```
+            "})
+            .unwrap();
+
+        let file_path = file.path().to_str().unwrap();
+
+        eelco.assert().failure().stderr(formatdoc! {r#"
+            Error: {file_path}:1
+            actual (sanitized): "2\n"
+            expected          : 3
+
+         "#});
     });
 }
 
