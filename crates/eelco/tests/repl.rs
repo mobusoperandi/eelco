@@ -36,9 +36,8 @@ fn result_mismatch() {
 
         eelco.assert().failure().stderr(formatdoc! {r#"
             Error: {file_path}:1
-            actual (sanitized): "2\n"
+            actual (sanitized): "2"
             expected          : 3
-
          "#});
     });
 }
