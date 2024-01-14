@@ -38,7 +38,7 @@ fn result_mismatch() {
             Error: {file_path}:1
             actual (sanitized): "2"
             expected          : 3
-         "#});
+        "#});
     });
 }
 
