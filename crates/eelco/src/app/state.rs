@@ -131,20 +131,16 @@ impl State {
             } => 'arm: {
                 acc.push(ch.into());
 
-                let Some(stripped_crlf_once) = acc.strip_suffix("\r\n") else {
+                let Some(stripped_crlf_twice) = acc.strip_suffix("\r\n\r\n") else {
                     break 'arm vec![];
                 };
 
-                if !stripped_crlf_once.ends_with("\r\n") {
-                    break 'arm vec![];
-                }
-
-                let sanitized = Self::sanitize(stripped_crlf_once)?;
+                let sanitized = Self::sanitize(stripped_crlf_twice)?;
 
                 if sanitized != expected_result.as_str() {
                     anyhow::bail!(indoc::formatdoc! {"
                         {id}
-                        actual (sanitized): {sanitized:?}
+                        actual (sanitized): {sanitized}
                         expected          : {expected_result}"
                     })
                 }

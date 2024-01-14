@@ -56,7 +56,9 @@ impl TryFrom<(LFLine, LFLine)> for ReplEntry {
     fn try_from((query, response): (LFLine, LFLine)) -> Result<Self, Self::Error> {
         Ok(Self {
             query: query.try_into()?,
-            expected_result: ExpectedResult(response.as_str().to_owned()),
+            expected_result: ExpectedResult(
+                response.as_str().strip_suffix('\n').unwrap().to_owned(),
+            ),
         })
     }
 }
