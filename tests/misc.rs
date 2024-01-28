@@ -1,3 +1,5 @@
+mod util;
+
 use util::with_eelco;
 
 #[test]

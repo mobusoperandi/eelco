@@ -1,3 +1,5 @@
+mod util;
+
 use assert_fs::prelude::FileWriteStr;
 use indoc::{formatdoc, indoc};
 use util::with_eelco;
