@@ -22,9 +22,7 @@
 
       commonArgs = {
         src = craneLib.cleanCargoSource (craneLib.path ./.);
-        inherit (craneLib.crateNameFromCargoToml {cargoToml = ./crates/eelco/Cargo.toml;}) pname;
         buildInputs = optional pkgs.stdenv.isDarwin pkgs.iconv;
-        cargoExtraArgs = "--package eelco";
       };
 
       cargoArtifacts = craneLib.buildDepsOnly commonArgs;
