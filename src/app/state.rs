@@ -1,5 +1,7 @@
 pub(crate) mod repl_state;
 
+use std::string;
+
 use crate::{
     example_id::ExampleId,
     repl::{
@@ -181,8 +183,12 @@ impl State {
         session.state = ReplSessionState::Killing;
         Ok(vec![
             OutputEvent::ReplCommand(ReplCommand::Kill(id.clone())),
-            OutputEvent::Eprintln(format!("PASS: {id}")),
+            OutputEvent::Eprintln(Self::fmt_pass(id)),
         ])
+    }
+
+    fn fmt_pass(id: &ExampleId) -> String {
+        format!("PASS: {id}")
     }
 
     fn sanitize(s: &str) -> anyhow::Result<String> {
