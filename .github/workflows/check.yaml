@@ -45,6 +45,7 @@ jobs:
         uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
         with:
           command: cargo clippy
+          args: -- --deny warnings
 
   fmt:
     runs-on: ubuntu-latest
