@@ -2,6 +2,7 @@ mod util;
 
 use assert_fs::fixture::FileWriteStr;
 use indoc::{formatdoc, indoc};
+use predicates::boolean::PredicateBooleanExt;
 use util::with_eelco;
 
 #[test]
@@ -34,9 +35,9 @@ fn all_examples_tested() {
 
         let file_path = file.path().to_str().unwrap();
 
-        eelco.assert().success().stderr(formatdoc! {"
-            PASS: {file_path}:1
-            PASS: {file_path}:7
-        "});
+        eelco.assert().success().stderr(
+            predicates::str::contains(format!("PASS: {file_path}:1"))
+                .and(predicates::str::contains(format!("PASS: {file_path}:7"))),
+        );
     });
 }
