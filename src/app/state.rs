@@ -1,7 +1,5 @@
 pub(crate) mod repl_state;
 
-use std::string;
-
 use crate::{
     example_id::ExampleId,
     repl::{
