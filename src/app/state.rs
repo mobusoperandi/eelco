@@ -8,9 +8,7 @@ use crate::{
     },
 };
 
-use self::repl_state::{
-    ExamplesState, ReplExampleState, ReplSessionExpecting, ReplSessionLive, ReplSessionState,
-};
+use self::repl_state::{ReplExampleState, ReplSessionExpecting, ReplSessionLive, ReplSessionState};
 
 use super::OutputEvent;
 
@@ -196,5 +194,33 @@ impl State {
             .filter(|ch| ch != &'\r')
             .collect();
         Ok(string)
+    }
+}
+
+#[derive(Debug, Default)]
+pub(crate) struct ExamplesState(std::collections::BTreeMap<ExampleId, ReplExampleState>);
+
+impl ExamplesState {
+    pub(crate) fn insert(&mut self, id: ExampleId, state: ReplExampleState) -> anyhow::Result<()> {
+        if self.0.insert(id.clone(), state).is_some() {
+            anyhow::bail!("duplicate session id {id:?}");
+        };
+        Ok(())
+    }
+
+    pub(crate) fn get_mut(&mut self, id: &ExampleId) -> anyhow::Result<&mut ReplExampleState> {
+        self.0
+            .get_mut(id)
+            .ok_or_else(|| anyhow::anyhow!("repl session not found {id:?}"))
+    }
+
+    pub(crate) fn remove(&mut self, id: &ExampleId) -> anyhow::Result<ReplExampleState> {
+        self.0
+            .remove(id)
+            .ok_or_else(|| anyhow::anyhow!("repl session not found {id:?}"))
+    }
+
+    pub(crate) fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 }
