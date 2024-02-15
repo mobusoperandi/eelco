@@ -7,23 +7,23 @@ use crate::{
 };
 
 #[derive(Debug, Default)]
-pub(crate) struct ReplState(std::collections::BTreeMap<ExampleId, ReplSession>);
+pub(crate) struct ExamplesState(std::collections::BTreeMap<ExampleId, ReplExampleState>);
 
-impl ReplState {
-    pub(crate) fn insert(&mut self, id: ExampleId, session: ReplSession) -> anyhow::Result<()> {
-        if self.0.insert(id.clone(), session).is_some() {
+impl ExamplesState {
+    pub(crate) fn insert(&mut self, id: ExampleId, state: ReplExampleState) -> anyhow::Result<()> {
+        if self.0.insert(id.clone(), state).is_some() {
             anyhow::bail!("duplicate session id {id:?}");
         };
         Ok(())
     }
 
-    pub(crate) fn get_mut(&mut self, id: &ExampleId) -> anyhow::Result<&mut ReplSession> {
+    pub(crate) fn get_mut(&mut self, id: &ExampleId) -> anyhow::Result<&mut ReplExampleState> {
         self.0
             .get_mut(id)
             .ok_or_else(|| anyhow::anyhow!("repl session not found {id:?}"))
     }
 
-    pub(crate) fn remove(&mut self, id: &ExampleId) -> anyhow::Result<ReplSession> {
+    pub(crate) fn remove(&mut self, id: &ExampleId) -> anyhow::Result<ReplExampleState> {
         self.0
             .remove(id)
             .ok_or_else(|| anyhow::anyhow!("repl session not found {id:?}"))
@@ -35,12 +35,12 @@ impl ReplState {
 }
 
 #[derive(Debug)]
-pub(crate) struct ReplSession {
+pub(crate) struct ReplExampleState {
     pub(crate) example: ReplExample,
     pub(crate) state: ReplSessionState,
 }
 
-impl ReplSession {
+impl ReplExampleState {
     pub(crate) fn new(repl_example: ReplExample) -> Self {
         Self {
             example: repl_example,

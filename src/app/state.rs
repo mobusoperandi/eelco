@@ -9,14 +9,14 @@ use crate::{
 };
 
 use self::repl_state::{
-    ReplSession, ReplSessionExpecting, ReplSessionLive, ReplSessionState, ReplState,
+    ExamplesState, ReplExampleState, ReplSessionExpecting, ReplSessionLive, ReplSessionState,
 };
 
 use super::OutputEvent;
 
 #[derive(Default, Debug)]
 pub(super) struct State {
-    repl: ReplState,
+    examples: ExamplesState,
 }
 
 impl State {
@@ -26,8 +26,8 @@ impl State {
     ) -> anyhow::Result<Vec<OutputEvent>> {
         let id = repl_example.id.clone();
 
-        self.repl
-            .insert(id.clone(), ReplSession::new(repl_example))?;
+        self.examples
+            .insert(id.clone(), ReplExampleState::new(repl_example))?;
 
         Ok(vec![OutputEvent::ReplCommand(ReplCommand::Spawn(id))])
     }
@@ -47,7 +47,7 @@ impl State {
     ) -> anyhow::Result<Vec<OutputEvent>> {
         let id = spawn?;
 
-        let session = self.repl.get_mut(&id)?;
+        let session = self.examples.get_mut(&id)?;
 
         if let ReplSessionState::Live(_) = &session.state {
             return Err(anyhow::anyhow!("spawned session {session:?} already live"));
@@ -74,9 +74,9 @@ impl State {
         result: anyhow::Result<ExampleId>,
     ) -> anyhow::Result<Vec<OutputEvent>> {
         let id = result?;
-        self.repl.remove(&id)?;
+        self.examples.remove(&id)?;
 
-        let events = if self.repl.is_empty() {
+        let events = if self.examples.is_empty() {
             vec![OutputEvent::Done(Ok(()))]
         } else {
             vec![]
@@ -90,7 +90,7 @@ impl State {
         id: ExampleId,
         result: std::io::Result<u8>,
     ) -> anyhow::Result<Vec<OutputEvent>> {
-        let session_live = self.repl.get_mut(&id)?;
+        let session_live = self.examples.get_mut(&id)?;
         let session_live = session_live.state.live_mut()?;
         let ch = result?;
 
@@ -154,7 +154,7 @@ impl State {
     }
 
     fn next_query(&mut self, id: &ExampleId) -> anyhow::Result<Vec<OutputEvent>> {
-        let session = self.repl.get_mut(id)?;
+        let session = self.examples.get_mut(id)?;
 
         let ReplSessionState::Live(session_live) = &mut session.state else {
             anyhow::bail!("expected session {id} to be live");
@@ -177,7 +177,7 @@ impl State {
     }
 
     fn session_end(&mut self, id: &ExampleId) -> anyhow::Result<Vec<OutputEvent>> {
-        let session = self.repl.get_mut(id)?;
+        let session = self.examples.get_mut(id)?;
         session.state = ReplSessionState::Killing;
         Ok(vec![
             OutputEvent::ReplCommand(ReplCommand::Kill(id.clone())),
