@@ -1,7 +1,7 @@
 mod util;
 
 use assert_fs::fixture::FileWriteStr;
-use indoc::{formatdoc, indoc};
+use indoc::indoc;
 use predicates::boolean::PredicateBooleanExt;
 use util::with_eelco;
 
