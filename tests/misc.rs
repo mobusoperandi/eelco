@@ -11,7 +11,7 @@ fn empty_file() {
         eelco
             .assert()
             .failure()
-            .stderr("Error: could not find any REPL examples\n");
+            .stderr("Error: could not find any examples\n");
     });
 }
 
@@ -23,6 +23,10 @@ fn all_examples_tested() {
                 nix-repl> 1 + 1
 
                 2
+                ```
+
+                ```nix
+                null
                 ```
 
                 ```nix-repl
