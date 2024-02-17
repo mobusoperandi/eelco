@@ -62,3 +62,22 @@ fn pass() {
             .stderr(format!("PASS: {file_path}:1\n"));
     });
 }
+
+#[test]
+fn pass_assignment() {
+    with_eelco(|file, eelco| {
+        file.write_str(indoc! {"
+                ```nix-repl
+                nix-repl> a = 1
+                ```
+            "})
+            .unwrap();
+
+        let file_path = file.path().to_str().unwrap();
+
+        eelco
+            .assert()
+            .success()
+            .stderr(format!("PASS: {file_path}:1\n"));
+    });
+}
