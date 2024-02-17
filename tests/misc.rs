@@ -39,6 +39,7 @@ fn all_examples_tested() {
 
         eelco.assert().success().stderr(
             predicates::str::contains(format!("PASS: {file_path}:1"))
+                .and(predicates::str::contains(format!("PASS: {file_path}:6")))
                 .and(predicates::str::contains(format!("PASS: {file_path}:10"))),
         );
     });
