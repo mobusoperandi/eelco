@@ -28,7 +28,6 @@ fn result_mismatch() {
         file.write_str(indoc! {"
                 ```nix-repl
                 nix-repl> 1 + 1
-
                 3
                 ```
             "})
@@ -50,7 +49,6 @@ fn pass() {
         file.write_str(indoc! {"
                 ```nix-repl
                 nix-repl> 1 + 1
-
                 2
                 ```
             "})
