@@ -3,6 +3,7 @@ pub(super) mod state;
 use futures::{FutureExt, SinkExt, StreamExt};
 
 use crate::{
+    eprintln_driver::Eprintlned,
     examples::Example,
     expression::driver::{EvaluateExpression, ExpressionEvent},
     repl::driver::{ReplCommand, ReplEvent},
@@ -14,6 +15,7 @@ pub(crate) struct Inputs {
     pub(crate) examples: Vec<Example>,
     pub(crate) repl_events: futures::stream::LocalBoxStream<'static, ReplEvent>,
     pub(crate) expression_events: futures::stream::LocalBoxStream<'static, ExpressionEvent>,
+    pub(crate) eprintln_events: futures::stream::LocalBoxStream<'static, Eprintlned>,
 }
 
 pub(crate) struct Outputs {
@@ -37,6 +39,7 @@ enum InputEvent {
     Example(Example),
     ReplEvent(ReplEvent),
     ExpressionEvent(ExpressionEvent),
+    Eprintlned,
 }
 
 pub(crate) fn app(inputs: Inputs) -> Outputs {
@@ -44,33 +47,25 @@ pub(crate) fn app(inputs: Inputs) -> Outputs {
         examples,
         repl_events,
         expression_events,
+        eprintln_events,
     } = inputs;
 
     let examples = futures::stream::iter(examples).map(InputEvent::Example);
 
     let repl_events = repl_events.map(InputEvent::ReplEvent);
     let expression_events = expression_events.map(InputEvent::ExpressionEvent);
+    let eprintln_events = eprintln_events.map(|_| InputEvent::Eprintlned);
 
     let input_events = futures::stream::select_all([
         examples.boxed_local(),
         repl_events.boxed_local(),
         expression_events.boxed_local(),
+        eprintln_events.boxed_local(),
     ]);
 
     let output_events = input_events
         .scan(State::default(), |state, event| {
-            let output = match event {
-                InputEvent::Example(example) => state.example(example),
-                InputEvent::ReplEvent(repl_event) => state.repl_event(repl_event),
-                InputEvent::ExpressionEvent(expression_event) => {
-                    state.expression_event(expression_event)
-                }
-            };
-
-            let output = match output {
-                Ok(output) => output,
-                Err(error) => vec![OutputEvent::Done(Err(error))],
-            };
+            let output = state.event(event);
 
             futures::future::ready(Some(output))
         })
