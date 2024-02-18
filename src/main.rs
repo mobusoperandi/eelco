@@ -2,6 +2,7 @@
 #![allow(clippy::multiple_crate_versions)]
 
 pub(crate) mod app;
+mod eprintln_driver;
 pub(crate) mod example_id;
 mod examples;
 mod expression;
@@ -13,6 +14,7 @@ use itertools::Itertools;
 
 use crate::{
     app::{Inputs, Outputs},
+    eprintln_driver::EprintlnDriver,
     expression::driver::ExpressionDriver,
     repl::driver::ReplDriver,
 };
@@ -35,11 +37,13 @@ async fn main() -> anyhow::Result<()> {
     }
     let (repl_driver, repl_events) = ReplDriver::new(cli.nix_path.clone());
     let (expression_driver, expression_events) = ExpressionDriver::new(cli.nix_path);
+    let (eprintln_driver, eprintln_events) = EprintlnDriver::new();
 
     let inputs = Inputs {
         examples,
         repl_events: repl_events.boxed_local(),
         expression_events: expression_events.boxed_local(),
+        eprintln_events,
     };
 
     let outputs = app::app(inputs);
@@ -52,9 +56,7 @@ async fn main() -> anyhow::Result<()> {
         eprintln_strings,
     } = outputs;
 
-    let eprintln_task = eprintln_strings.for_each(|string| async move {
-        eprintln!("{string}");
-    });
+    let eprintln_task = eprintln_driver.init(eprintln_strings);
     let repl_task = repl_driver.init(repl_commands);
     let expression_task = expression_driver.init(expression_commands);
 

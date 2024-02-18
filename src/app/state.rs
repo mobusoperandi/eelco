@@ -21,6 +21,7 @@ use super::OutputEvent;
 #[derive(Default, Debug)]
 pub(super) struct State {
     examples: ExamplesState,
+    pending_eprintlns: usize,
 }
 
 impl State {
@@ -194,12 +195,17 @@ impl State {
         session.state = ReplSessionState::Killing;
         Ok(vec![
             OutputEvent::ReplCommand(ReplCommand::Kill(id.clone())),
-            OutputEvent::Eprintln(Self::fmt_pass(id)),
+            self.eprintln(Self::fmt_pass(id)),
         ])
     }
 
     fn fmt_pass(id: &ExampleId) -> String {
         format!("PASS: {id}")
+    }
+
+    fn eprintln(&mut self, line: String) -> OutputEvent {
+        self.pending_eprintlns += 1;
+        OutputEvent::Eprintln(line)
     }
 
     fn sanitize(s: &str) -> anyhow::Result<String> {
@@ -237,7 +243,7 @@ impl State {
 
         self.examples.remove(&example_id)?;
 
-        let mut events = vec![OutputEvent::Eprintln(Self::fmt_pass(&example_id))];
+        let mut events = vec![self.eprintln(Self::fmt_pass(&example_id))];
 
         if self.examples.is_empty() {
             events.push(OutputEvent::Done(Ok(())))
@@ -264,6 +270,11 @@ impl State {
         let example_state = self.examples.get_mut_expression(&example_id)?;
         *example_state = ExpressionExampleState::Spawned;
         Ok(vec![])
+    }
+
+    pub(crate) fn eprintlned(&mut self) -> Result<Vec<OutputEvent>, anyhow::Error> {
+        self.pending_eprintlns -= 1;
+        Ok(Vec::new())
     }
 }
 
