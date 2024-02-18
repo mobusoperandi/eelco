@@ -22,6 +22,7 @@ use super::{InputEvent, OutputEvent};
 pub(super) struct State {
     examples: ExamplesState,
     pending_eprintlns: usize,
+    error: Option<anyhow::Error>,
 }
 
 impl State {
@@ -35,10 +36,23 @@ impl State {
             InputEvent::Eprintlned => self.eprintlned(),
         };
 
-        match output {
+        let output = match output {
             Ok(output) => output,
-            Err(error) => vec![OutputEvent::Done(Err(error))],
+            Err(error) => {
+                self.error = Some(error);
+                vec![]
+            }
+        };
+
+        if let (Some(error), 0) = (&self.error, self.pending_eprintlns) {
+            return vec![OutputEvent::Done(Err(anyhow::anyhow!("{error}")))];
         }
+
+        if self.examples.is_empty() && self.pending_eprintlns == 0 {
+            return vec![OutputEvent::Done(Ok(()))];
+        }
+
+        output
     }
 
     pub(super) fn example(&mut self, example: Example) -> anyhow::Result<Vec<OutputEvent>> {
@@ -105,14 +119,7 @@ impl State {
     ) -> anyhow::Result<Vec<OutputEvent>> {
         let id = result?;
         self.examples.remove(&id)?;
-
-        let events = if self.examples.is_empty() {
-            vec![OutputEvent::Done(Ok(()))]
-        } else {
-            vec![]
-        };
-
-        Ok(events)
+        Ok(Vec::new())
     }
 
     fn repl_event_read(
@@ -259,13 +266,7 @@ impl State {
 
         self.examples.remove(&example_id)?;
 
-        let mut events = vec![self.eprintln(Self::fmt_pass(&example_id))];
-
-        if self.examples.is_empty() {
-            events.push(OutputEvent::Done(Ok(())))
-        }
-
-        Ok(events)
+        Ok(vec![self.eprintln(Self::fmt_pass(&example_id))])
     }
 
     pub(crate) fn expression_event(
