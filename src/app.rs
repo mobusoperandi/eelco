@@ -65,19 +65,7 @@ pub(crate) fn app(inputs: Inputs) -> Outputs {
 
     let output_events = input_events
         .scan(State::default(), |state, event| {
-            let output = match event {
-                InputEvent::Example(example) => state.example(example),
-                InputEvent::ReplEvent(repl_event) => state.repl_event(repl_event),
-                InputEvent::ExpressionEvent(expression_event) => {
-                    state.expression_event(expression_event)
-                }
-                InputEvent::Eprintlned => state.eprintlned(),
-            };
-
-            let output = match output {
-                Ok(output) => output,
-                Err(error) => vec![OutputEvent::Done(Err(error))],
-            };
+            let output = state.event(event);
 
             futures::future::ready(Some(output))
         })

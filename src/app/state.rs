@@ -16,7 +16,7 @@ use self::{
     repl_state::{ReplExampleState, ReplSessionExpecting, ReplSessionLive, ReplSessionState},
 };
 
-use super::OutputEvent;
+use super::{InputEvent, OutputEvent};
 
 #[derive(Default, Debug)]
 pub(super) struct State {
@@ -25,6 +25,22 @@ pub(super) struct State {
 }
 
 impl State {
+    pub(super) fn event(&mut self, event: InputEvent) -> Vec<OutputEvent> {
+        let output = match event {
+            InputEvent::Example(example) => self.example(example),
+            InputEvent::ReplEvent(repl_event) => self.repl_event(repl_event),
+            InputEvent::ExpressionEvent(expression_event) => {
+                self.expression_event(expression_event)
+            }
+            InputEvent::Eprintlned => self.eprintlned(),
+        };
+
+        match output {
+            Ok(output) => output,
+            Err(error) => vec![OutputEvent::Done(Err(error))],
+        }
+    }
+
     pub(super) fn example(&mut self, example: Example) -> anyhow::Result<Vec<OutputEvent>> {
         let (id, example_state, event) = match example {
             Example::Repl(example) => {
