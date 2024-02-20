@@ -1,5 +1,5 @@
 use crate::repl::{
-    driver::ReplQuery,
+    driver::{LFLine, ReplQuery},
     example::{ReplEntry, ReplExample, ReplExampleEntries},
 };
 
@@ -77,3 +77,15 @@ impl Iterator for ReplSessionLive {
 
 #[derive(Debug, Clone, derive_more::Deref, derive_more::Display)]
 pub(crate) struct ExpectedResult(pub(crate) String);
+
+impl From<LFLine> for ExpectedResult {
+    fn from(expected_result: LFLine) -> Self {
+        let expected_result = expected_result
+            .as_str()
+            .strip_suffix('\n')
+            .unwrap()
+            .to_owned();
+
+        Self(expected_result)
+    }
+}
