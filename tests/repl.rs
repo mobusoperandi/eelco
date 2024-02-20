@@ -18,7 +18,7 @@ fn fails_to_parse() {
         eelco
             .assert()
             .failure()
-            .stderr("Error: missing prompt LFLine(\"nix-shnepl> nope\\n\")\n");
+            .stderr("Error: expected prompt, found LFLine(\"nix-shnepl> nope\\n\")\n");
     });
 }
 
@@ -29,6 +29,7 @@ fn result_mismatch() {
                 ```nix-repl
                 nix-repl> 1 + 1
                 3
+
                 ```
             "})
             .unwrap();
@@ -50,6 +51,7 @@ fn pass() {
                 ```nix-repl
                 nix-repl> 1 + 1
                 2
+
                 ```
             "})
             .unwrap();
@@ -69,6 +71,30 @@ fn pass_assignment() {
         file.write_str(indoc! {"
                 ```nix-repl
                 nix-repl> a = 1
+
+                ```
+            "})
+            .unwrap();
+
+        let file_path = file.path().to_str().unwrap();
+
+        eelco
+            .assert()
+            .success()
+            .stderr(format!("PASS: {file_path}:1\n"));
+    });
+}
+
+#[test]
+fn pass_subsequent_query() {
+    with_eelco(|file, eelco| {
+        file.write_str(indoc! {"
+                ```nix-repl
+                nix-repl> a = 1
+
+                nix-repl> a
+                1
+
                 ```
             "})
             .unwrap();

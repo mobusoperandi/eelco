@@ -4,7 +4,7 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use crate::example_id::ExampleId;
 
-#[derive(Debug, Clone, derive_more::Deref)]
+#[derive(Debug, Clone, PartialEq, Eq, derive_more::Deref, derive_more::Display)]
 pub(crate) struct LFLine(String);
 
 impl std::str::FromStr for LFLine {
@@ -27,17 +27,12 @@ impl std::str::FromStr for LFLine {
     }
 }
 
-#[derive(Debug, Clone, derive_more::Deref)]
+#[derive(Debug, Clone, derive_more::Deref, PartialEq, Eq)]
 pub(crate) struct ReplQuery(LFLine);
 
-impl TryFrom<LFLine> for ReplQuery {
-    type Error = anyhow::Error;
-
-    fn try_from(line: LFLine) -> Result<Self, Self::Error> {
-        let Option::Some(("", query)) = line.split_once("nix-repl> ") else {
-            return Err(anyhow::anyhow!("missing prompt {line:?}"));
-        };
-        Ok(Self(query.parse().unwrap()))
+impl ReplQuery {
+    pub fn new(query: LFLine) -> Self {
+        Self(query)
     }
 }
 
