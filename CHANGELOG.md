@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/mobusoperandi/eelco/compare/v1.0.1...v1.1.0) (2024-02-20)
+
+
+### Features
+
+* non-flake export using flake-compat ([756dcef](https://github.com/mobusoperandi/eelco/commit/756dcefc34ff3172f2d2666ef8ae3ce9d2f5bcfe))
+
 ## [1.0.1](https://github.com/mobusoperandi/eelco/compare/v1.0.0...v1.0.1) (2024-02-20)
 
 
