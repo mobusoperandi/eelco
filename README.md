@@ -1,3 +1,5 @@
+![eelco](./eelco.png)
+
 This is a CLI that reads markdown files,
 extracts Nix examples from them and
 tests these examples.
