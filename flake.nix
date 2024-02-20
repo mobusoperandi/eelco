@@ -4,12 +4,14 @@
   inputs.crane.url = "github:ipetkov/crane";
   inputs.fenix.inputs.nixpkgs.follows = "nixpkgs";
   inputs.fenix.url = "github:nix-community/fenix";
+  inputs.flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
   inputs.flake-utils.url = "github:numtide/flake-utils";
 
   outputs = {
     self,
     crane,
     fenix,
+    flake-compat,
     flake-utils,
     nixpkgs,
   }: let
