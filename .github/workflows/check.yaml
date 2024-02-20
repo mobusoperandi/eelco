@@ -10,7 +10,7 @@ jobs:
         runner: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: cache
         uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
         with:
@@ -30,7 +30,7 @@ jobs:
   clippy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: cache
         uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
         with:
@@ -50,7 +50,7 @@ jobs:
   fmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: toolchain
         uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
         with:
