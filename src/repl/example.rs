@@ -37,7 +37,11 @@ impl std::str::FromStr for ReplExampleEntries {
             .map(|line| LFLine::from_str(line).unwrap())
             .filter(|line| **line != "\n")
             .tuples::<(_, _)>()
-            .map(ReplEntry::try_from)
+            .map(|(query, expected_result)| {
+                let query = ReplQuery::try_from(query)?;
+                let expected_result = ExpectedResult::from(expected_result);
+                Ok(ReplEntry::new(query, expected_result))
+            })
             .collect::<anyhow::Result<Vec<_>>>()?;
 
         Ok(Self(entries))
@@ -50,16 +54,12 @@ pub(crate) struct ReplEntry {
     pub(crate) expected_result: ExpectedResult,
 }
 
-impl TryFrom<(LFLine, LFLine)> for ReplEntry {
-    type Error = anyhow::Error;
-
-    fn try_from((query, response): (LFLine, LFLine)) -> Result<Self, Self::Error> {
-        Ok(Self {
-            query: query.try_into()?,
-            expected_result: ExpectedResult(
-                response.as_str().strip_suffix('\n').unwrap().to_owned(),
-            ),
-        })
+impl ReplEntry {
+    pub(crate) fn new(query: ReplQuery, expected_result: ExpectedResult) -> Self {
+        Self {
+            query,
+            expected_result,
+        }
     }
 }
 
