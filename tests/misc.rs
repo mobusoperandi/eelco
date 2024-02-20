@@ -22,6 +22,7 @@ fn all_examples_tested() {
                 ```nix-repl
                 nix-repl> 1 + 1
                 2
+
                 ```
 
                 ```nix
@@ -31,6 +32,7 @@ fn all_examples_tested() {
                 ```nix-repl
                 nix-repl> 1 + 2
                 3
+
                 ```
             "})
             .unwrap();
@@ -39,8 +41,8 @@ fn all_examples_tested() {
 
         eelco.assert().success().stderr(
             predicates::str::contains(format!("PASS: {file_path}:1"))
-                .and(predicates::str::contains(format!("PASS: {file_path}:6")))
-                .and(predicates::str::contains(format!("PASS: {file_path}:10"))),
+                .and(predicates::str::contains(format!("PASS: {file_path}:7")))
+                .and(predicates::str::contains(format!("PASS: {file_path}:11"))),
         );
     });
 }

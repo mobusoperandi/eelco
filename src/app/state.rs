@@ -153,9 +153,13 @@ impl State {
                 if !acc.ends_with('\n') {
                     vec![]
                 } else if Self::sanitize(acc)? == expected.as_str() {
-                    session_live.expecting = ReplSessionExpecting::Result {
-                        acc: String::new(),
-                        expected_result: expected_result.clone(),
+                    session_live.expecting = if let Some(expected_result) = expected_result {
+                        ReplSessionExpecting::Result {
+                            acc: String::new(),
+                            expected_result: expected_result.clone(),
+                        }
+                    } else {
+                        ReplSessionExpecting::BlankLine { saw_cr: false }
                     };
                     vec![]
                 } else {
@@ -182,6 +186,20 @@ impl State {
                     })
                 }
 
+                session_live.expecting = ReplSessionExpecting::Prompt(String::new());
+                vec![]
+            }
+            ReplSessionExpecting::BlankLine { saw_cr: false } => {
+                anyhow::ensure!(
+                    ch == b'\r',
+                    "expecting carriage return, got {:?}",
+                    ch as char,
+                );
+                session_live.expecting = ReplSessionExpecting::BlankLine { saw_cr: true };
+                vec![]
+            }
+            ReplSessionExpecting::BlankLine { saw_cr: true } => {
+                anyhow::ensure!(ch == b'\n', "expecting line feed, got {:?}", ch as char,);
                 session_live.expecting = ReplSessionExpecting::Prompt(String::new());
                 vec![]
             }

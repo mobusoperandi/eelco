@@ -49,11 +49,14 @@ pub(crate) enum ReplSessionExpecting {
     Echo {
         acc: String,
         last_query: ReplQuery,
-        expected_result: ExpectedResult,
+        expected_result: Option<ExpectedResult>,
     },
     Result {
         acc: String,
         expected_result: ExpectedResult,
+    },
+    BlankLine {
+        saw_cr: bool,
     },
 }
 
@@ -75,7 +78,7 @@ impl Iterator for ReplSessionLive {
     }
 }
 
-#[derive(Debug, Clone, derive_more::Deref, derive_more::Display)]
+#[derive(Debug, Clone, PartialEq, Eq, derive_more::Deref, derive_more::Display)]
 pub(crate) struct ExpectedResult(pub(crate) String);
 
 impl From<LFLine> for ExpectedResult {
