@@ -32,11 +32,9 @@
         // {
           inherit cargoArtifacts;
           nativeCheckInputs = [pkgs.nix];
-          __impureHostDeps = ["/dev/ptmx" "/dev/pts/ptmx"];
-          preCheck = ''
-            echo "I AM $(whoami)"
-            ls -l /dev/
-          '';
+          # 1. integration tests execute `nix`, which fails creating `/nix/var`
+          # 2. integration tests require `/dev/ptmx`
+          doCheck = false;
         }
       );
 
