@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/mobusoperandi/eelco/compare/v1.0.0...v1.0.1) (2024-02-20)
+
+
+### Bug Fixes
+
+* skip tests in nix pkg ([44ab8ab](https://github.com/mobusoperandi/eelco/commit/44ab8abd675b1f3e1b5550f99a39b0aa74379f10))
+
 ## [1.0.0](https://github.com/mobusoperandi/eelco/compare/v0.2.0...v1.0.0) (2024-02-20)
 
 
