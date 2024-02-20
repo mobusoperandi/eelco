@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
 
 jobs:
@@ -63,7 +63,7 @@ jobs:
           args: --check
 
   release:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     permissions:
       pull-requests: write
       contents: write
