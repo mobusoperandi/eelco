@@ -2,6 +2,7 @@ use crate::example_id::ExampleId;
 use crate::expression::ExpressionExample;
 use crate::repl::example::ReplExample;
 use crate::repl::example::NIX_REPL_LANG_TAG;
+use anyhow::Context;
 use itertools::Itertools;
 
 #[derive(Debug, Clone)]
@@ -38,18 +39,21 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                 let line = ast.sourcepos.start.line;
                 let id = ExampleId::new(path, line);
 
-                match info.split_ascii_whitespace().next() {
+                let maybe_result = match info.split_ascii_whitespace().next() {
                     Some(NIX_REPL_LANG_TAG) => {
                         let repl_example =
-                            ReplExample::try_new(id, literal.clone()).map(Example::Repl);
+                            ReplExample::try_new(id.clone(), literal.clone()).map(Example::Repl);
                         Some(repl_example)
                     }
                     Some("nix") => {
-                        let expression_example = ExpressionExample::new(id, literal.clone());
+                        let expression_example =
+                            ExpressionExample::new(id.clone(), literal.clone());
                         Some(Ok(Example::Expression(expression_example)))
                     }
                     _ => None,
-                }
+                };
+
+                maybe_result.map(|result| result.context(format!("{id}")))
             } else {
                 None
             }
