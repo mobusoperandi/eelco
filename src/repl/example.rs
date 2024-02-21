@@ -9,13 +9,7 @@ pub(crate) struct ReplExample {
 }
 
 impl ReplExample {
-    pub(crate) fn try_new(
-        source_path: camino::Utf8PathBuf,
-        line: usize,
-        contents: String,
-    ) -> anyhow::Result<Self> {
-        let id = ExampleId::new(source_path, line);
-
+    pub(crate) fn try_new(id: ExampleId, contents: String) -> anyhow::Result<Self> {
         Ok(Self {
             id,
             entries: contents.parse()?,

@@ -2,6 +2,7 @@ mod util;
 
 use assert_fs::prelude::FileWriteStr;
 use indoc::{formatdoc, indoc};
+use predicates::boolean::PredicateBooleanExt;
 use util::with_eelco;
 
 #[test]
@@ -15,10 +16,13 @@ fn fails_to_parse() {
             "})
             .unwrap();
 
-        eelco
-            .assert()
-            .failure()
-            .stderr("Error: expected prompt, found LFLine(\"nix-shnepl> nope\\n\")\n");
+        let file_path = file.path().to_str().unwrap();
+
+        eelco.assert().failure().stderr(
+            predicates::str::starts_with(format!("Error: {file_path}:1")).and(
+                predicates::str::contains("expected prompt, found LFLine(\"nix-shnepl> nope\\n\")"),
+            ),
+        );
     });
 }
 

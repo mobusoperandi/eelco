@@ -1,6 +1,8 @@
+use crate::example_id::ExampleId;
 use crate::expression::ExpressionExample;
 use crate::repl::example::ReplExample;
 use crate::repl::example::NIX_REPL_LANG_TAG;
+use anyhow::Context;
 use itertools::Itertools;
 
 #[derive(Debug, Clone)]
@@ -34,21 +36,24 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
         .filter_map(|(path, ast)| {
             if let comrak::nodes::NodeValue::CodeBlock(code_block) = ast.value {
                 let comrak::nodes::NodeCodeBlock { info, literal, .. } = code_block;
-                match info.split_ascii_whitespace().next() {
+                let line = ast.sourcepos.start.line;
+                let id = ExampleId::new(path, line);
+
+                let maybe_result = match info.split_ascii_whitespace().next() {
                     Some(NIX_REPL_LANG_TAG) => {
-                        let line = ast.sourcepos.start.line;
                         let repl_example =
-                            ReplExample::try_new(path, line, literal.clone()).map(Example::Repl);
+                            ReplExample::try_new(id.clone(), literal.clone()).map(Example::Repl);
                         Some(repl_example)
                     }
                     Some("nix") => {
-                        let line = ast.sourcepos.start.line;
                         let expression_example =
-                            ExpressionExample::new(path, line, literal.clone());
+                            ExpressionExample::new(id.clone(), literal.clone());
                         Some(Ok(Example::Expression(expression_example)))
                     }
                     _ => None,
-                }
+                };
+
+                maybe_result.map(|result| result.context(format!("{id}")))
             } else {
                 None
             }
