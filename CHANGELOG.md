@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/mobusoperandi/eelco/compare/v1.1.0...v1.1.1) (2024-02-21)
+
+
+### Bug Fixes
+
+* eprint example id when failing to parse it ([202e8ef](https://github.com/mobusoperandi/eelco/commit/202e8ef8ddd42556dfba326567579ba6d8067391)), closes [#88](https://github.com/mobusoperandi/eelco/issues/88)
+
 ## [1.1.0](https://github.com/mobusoperandi/eelco/compare/v1.0.1...v1.1.0) (2024-02-20)
 
 
