@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/mobusoperandi/eelco/compare/v1.1.1...v1.2.0) (2024-02-21)
+
+
+### Features
+
+* support skipping examples ([14d03a3](https://github.com/mobusoperandi/eelco/commit/14d03a34e6a4b81c642777d6549d9d46064c812c))
+
 ## [1.1.1](https://github.com/mobusoperandi/eelco/compare/v1.1.0...v1.1.1) (2024-02-21)
 
 
