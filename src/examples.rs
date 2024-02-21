@@ -1,3 +1,4 @@
+use crate::example_id::ExampleId;
 use crate::expression::ExpressionExample;
 use crate::repl::example::ReplExample;
 use crate::repl::example::NIX_REPL_LANG_TAG;
@@ -35,15 +36,16 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
             if let comrak::nodes::NodeValue::CodeBlock(code_block) = ast.value {
                 let comrak::nodes::NodeCodeBlock { info, literal, .. } = code_block;
                 let line = ast.sourcepos.start.line;
+                let id = ExampleId::new(path, line);
+
                 match info.split_ascii_whitespace().next() {
                     Some(NIX_REPL_LANG_TAG) => {
                         let repl_example =
-                            ReplExample::try_new(path, line, literal.clone()).map(Example::Repl);
+                            ReplExample::try_new(id, literal.clone()).map(Example::Repl);
                         Some(repl_example)
                     }
                     Some("nix") => {
-                        let expression_example =
-                            ExpressionExample::new(path, line, literal.clone());
+                        let expression_example = ExpressionExample::new(id, literal.clone());
                         Some(Ok(Example::Expression(expression_example)))
                     }
                     _ => None,

@@ -9,8 +9,7 @@ pub(crate) struct ExpressionExample {
 }
 
 impl ExpressionExample {
-    pub(crate) fn new(path: camino::Utf8PathBuf, line: usize, expression: String) -> Self {
-        let id = ExampleId::new(path, line);
+    pub(crate) fn new(id: ExampleId, expression: String) -> Self {
         Self { id, expression }
     }
 }
