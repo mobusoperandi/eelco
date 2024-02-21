@@ -41,3 +41,5 @@ Repl examples will be evaluated by the real Nix repl.
 At the moment, expressions and assignments queries are supported.
 A line that follows an expression query will be used as an assertion.
 Blank lines matter. Even trailing ones.
+
+The name eelco is in homage to the original author of Nix, Eelco Dolstra.
