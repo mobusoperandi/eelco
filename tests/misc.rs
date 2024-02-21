@@ -46,3 +46,23 @@ fn all_examples_tested() {
         );
     });
 }
+
+#[test]
+fn skip() {
+    with_eelco(|file, eelco| {
+        file.write_str(indoc! {"
+            ```nix skip
+            assert false; null
+            ```
+            ```nix foo skip
+            assert false; null
+            ```
+            ```nix
+            null
+            ```
+        "})
+            .unwrap();
+
+        eelco.assert().success();
+    })
+}

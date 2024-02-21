@@ -42,4 +42,6 @@ At the moment, expressions and assignments queries are supported.
 A line that follows an expression query will be used as an assertion.
 Blank lines matter. Even trailing ones.
 
+Examples can be skipped by including the word `skip` in the info string.
+
 The name eelco is in homage to the original author of Nix, Eelco Dolstra.

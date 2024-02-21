@@ -38,14 +38,16 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                 let comrak::nodes::NodeCodeBlock { info, literal, .. } = code_block;
                 let line = ast.sourcepos.start.line;
                 let id = ExampleId::new(path, line);
+                let mut info_words = info.split_ascii_whitespace();
 
-                let maybe_result = match info.split_ascii_whitespace().next() {
-                    Some(NIX_REPL_LANG_TAG) => {
+                let maybe_result = match (info_words.next(), info_words.contains(&"skip")) {
+                    (_, true) => None,
+                    (Some(NIX_REPL_LANG_TAG), _) => {
                         let repl_example =
                             ReplExample::try_new(id.clone(), literal.clone()).map(Example::Repl);
                         Some(repl_example)
                     }
-                    Some("nix") => {
+                    (Some("nix"), _) => {
                         let expression_example =
                             ExpressionExample::new(id.clone(), literal.clone());
                         Some(Ok(Example::Expression(expression_example)))
