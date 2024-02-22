@@ -1,7 +1,7 @@
 mod util;
 
 use assert_fs::fixture::FileWriteStr;
-use indoc::{formatdoc, indoc};
+use indoc::indoc;
 use predicates::{
     prelude::PredicateBooleanExt,
     str::{contains, starts_with},
@@ -27,9 +27,13 @@ fn assertion_fail() {
 }
 
 #[test]
-fn fail_non_null() {
+fn pass() {
     with_eelco(|file, eelco| {
         file.write_str(indoc! {"
+                ```nix
+                null
+                ```
+
                 ```nix
                 0
                 ```
@@ -38,31 +42,10 @@ fn fail_non_null() {
 
         let file_path = file.path().to_str().unwrap();
 
-        eelco.assert().failure().stderr(formatdoc! {"
-            Error: {file_path}:1
-            evaluated into non-null
-            note: examples must evaluate into null
-            value: 0
-        "});
-    });
-}
-
-#[test]
-fn pass() {
-    with_eelco(|file, eelco| {
-        file.write_str(indoc! {"
-                ```nix
-                null
-                ```
-            "})
-            .unwrap();
-
-        let file_path = file.path().to_str().unwrap();
-
-        eelco
-            .assert()
-            .success()
-            .stderr(format!("PASS: {file_path}:1\n"));
+        eelco.assert().success().stderr(
+            predicates::str::contains(format!("PASS: {file_path}:1\n"))
+                .and(predicates::str::contains(format!("PASS: {file_path}:5\n"))),
+        );
     });
 }
 

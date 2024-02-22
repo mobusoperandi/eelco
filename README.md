@@ -13,15 +13,13 @@ Expression examples look like this:
 
 ````md
 ```nix
-assert 1 + 1 == 2; null
+let n = 1 + 1; in assert n == 2; n
 ```
 ````
 
 They are nix expressions inside of fenced code blocks.
 The first word in their info string is `nix`.
 The expression is passed to Nix for evaluation as `nix eval --expr <EXPRESSION>`.
-For future compatibility, to be considered passing,
-it must successfully evaluate into `null`.
 It is expected of the author to demonstrate and prove their points
 using assertions.
 
