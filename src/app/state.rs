@@ -2,7 +2,6 @@ pub(crate) mod expression_state;
 pub(crate) mod repl_state;
 
 use anyhow::bail;
-use indoc::formatdoc;
 
 use crate::{
     example_id::ExampleId,
@@ -267,19 +266,6 @@ impl State {
         if !expression_output.status.success() {
             let stderr = String::from_utf8_lossy(&expression_output.stderr);
             bail!("{example_id}\n{stderr}")
-        }
-
-        if expression_output.stdout != b"null\n" {
-            let stdout = String::from_utf8_lossy(&expression_output.stdout);
-            let stdout = stdout.trim_end();
-
-            let message = formatdoc! {"
-                {example_id}
-                evaluated into non-null
-                note: examples must evaluate into null
-                value: {stdout}"};
-
-            bail!("{message}");
         }
 
         self.examples.remove(&example_id)?;
