@@ -22,7 +22,7 @@ fn pass() {
                 ```
 
                 ```bash
-                nix-channel 
+                nix-channel --add
                 nix-build ./a.nix
                 [[ $(./result) == "Hello, world!" ]]
                 ```
