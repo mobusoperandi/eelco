@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/mobusoperandi/eelco/compare/v1.2.0...v1.3.0) (2024-02-22)
+
+
+### Features
+
+* no restriction on what expression examples eval into ([e458ca0](https://github.com/mobusoperandi/eelco/commit/e458ca0414feb2fd9d5c69c255cc7c39e21f5d6e))
+
 ## [1.2.0](https://github.com/mobusoperandi/eelco/compare/v1.1.1...v1.2.0) (2024-02-21)
 
 
