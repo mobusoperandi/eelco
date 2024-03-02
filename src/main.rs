@@ -22,8 +22,6 @@ use crate::{
 #[derive(Debug, clap::Parser)]
 #[command(version, about)]
 struct Cli {
-    /// Path to a `nix` executable
-    nix_path: camino::Utf8PathBuf,
     /// pattern (`glob` crate) of markdown filespaths
     sources: String,
 }
