@@ -1,5 +1,5 @@
 use crate::repl::{
-    driver::{LFLine, ReplQuery},
+    driver::LFLine,
     example::{ReplEntry, ReplExample, ReplExampleEntries},
 };
 
@@ -45,12 +45,7 @@ pub(crate) struct ReplSessionLive {
 #[derive(Debug)]
 pub(crate) enum ReplSessionExpecting {
     Nothing,
-    Prompt(String),
-    Echo {
-        acc: String,
-        last_query: ReplQuery,
-        expected_result: Option<ExpectedResult>,
-    },
+    Greeting(String),
     Result {
         acc: String,
         expected_result: ExpectedResult,
@@ -64,7 +59,7 @@ impl ReplSessionLive {
     pub(crate) fn new(entries: ReplExampleEntries) -> Self {
         Self {
             iterator: entries.into_iter(),
-            expecting: ReplSessionExpecting::Prompt(String::new()),
+            expecting: ReplSessionExpecting::Greeting(String::new()),
         }
     }
 }

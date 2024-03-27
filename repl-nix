@@ -1,0 +1,8 @@
+nix-repl> 1+1
+inside getLine!
+after setupSignals!after readLine!
+[36;1m2[0m
+
+nix-repl> 
+inside getLine!
+after setupSignals!after readLine!

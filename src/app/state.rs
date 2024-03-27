@@ -80,13 +80,15 @@ impl State {
             ReplEvent::Spawn(spawn) => self.repl_event_spawn(spawn),
             ReplEvent::Query(id, query, result) => self.repl_event_query(id, query, result),
             ReplEvent::Kill(id) => self.repl_event_kill(id),
-            ReplEvent::Read(id, result) => self.repl_event_read(id, result),
+            ReplEvent::Stderr(id, byte) => self.repl_event_stderr(id, byte),
+            ReplEvent::Stdout(id, byte) => self.repl_event_stdout(id, byte),
+            ReplEvent::Error(error) => Err(error.into()),
         }
     }
 
     fn repl_event_spawn(
         &mut self,
-        spawn: Result<ExampleId, pty_process::Error>,
+        spawn: Result<ExampleId, std::io::Error>,
     ) -> anyhow::Result<Vec<OutputEvent>> {
         let id = spawn?;
 
@@ -121,49 +123,43 @@ impl State {
         Ok(Vec::new())
     }
 
-    fn repl_event_read(
-        &mut self,
-        id: ExampleId,
-        result: std::io::Result<u8>,
-    ) -> anyhow::Result<Vec<OutputEvent>> {
+    fn repl_event_stderr(&mut self, id: ExampleId, ch: u8) -> anyhow::Result<Vec<OutputEvent>> {
         let session_live = self.examples.get_mut_repl(&id)?;
         let session_live = session_live.state.live_mut()?;
-        let ch = result?;
 
         let output = match &mut session_live.expecting {
-            ReplSessionExpecting::Nothing => anyhow::bail!("not expecting, got {:?}", ch as char),
-            ReplSessionExpecting::Prompt(acc) => {
+            ReplSessionExpecting::Nothing => {
+                anyhow::bail!("expecting nothing, got stderr {:?}", ch as char)
+            }
+            ReplSessionExpecting::Greeting(acc) => {
                 acc.push(ch.into());
-                let string = String::from_utf8(strip_ansi_escapes::strip(acc)?)?;
 
-                if string == "nix-repl> " {
+                if acc.ends_with("\n\n") {
                     session_live.expecting = ReplSessionExpecting::Nothing;
                     self.next_query(&id)?
                 } else {
                     vec![]
                 }
             }
-            ReplSessionExpecting::Echo {
-                acc,
-                last_query: expected,
-                expected_result,
-            } => {
-                acc.push(ch.into());
-                if !acc.ends_with('\n') {
-                    vec![]
-                } else if Self::sanitize(acc)? == expected.as_str() {
-                    session_live.expecting = if let Some(expected_result) = expected_result {
-                        ReplSessionExpecting::Result {
-                            acc: String::new(),
-                            expected_result: expected_result.clone(),
-                        }
-                    } else {
-                        ReplSessionExpecting::BlankLine { saw_cr: false }
-                    };
-                    vec![]
-                } else {
-                    anyhow::bail!("actual: {acc:?}, expected: {expected:?}");
-                }
+            ReplSessionExpecting::Result { .. } => {
+                anyhow::bail!("expecting result, got stderr {:?}", ch as char)
+            }
+            ReplSessionExpecting::BlankLine { .. } => {
+                anyhow::bail!("expecting blank line, got stderr {:?}", ch as char)
+            }
+        };
+
+        Ok(output)
+    }
+
+    fn repl_event_stdout(&mut self, id: ExampleId, ch: u8) -> anyhow::Result<Vec<OutputEvent>> {
+        let session_live = self.examples.get_mut_repl(&id)?;
+        let session_live = session_live.state.live_mut()?;
+
+        let output = match &mut session_live.expecting {
+            ReplSessionExpecting::Nothing => anyhow::bail!("not expecting, got {:?}", ch as char),
+            ReplSessionExpecting::Greeting(_) => {
+                anyhow::bail!("expecting greeting, got {:?}", ch as char)
             }
             ReplSessionExpecting::Result {
                 acc,
@@ -185,7 +181,7 @@ impl State {
                     })
                 }
 
-                session_live.expecting = ReplSessionExpecting::Prompt(String::new());
+                session_live.expecting = ReplSessionExpecting::Nothing;
                 vec![]
             }
             ReplSessionExpecting::BlankLine { saw_cr: false } => {
@@ -199,7 +195,7 @@ impl State {
             }
             ReplSessionExpecting::BlankLine { saw_cr: true } => {
                 anyhow::ensure!(ch == b'\n', "expecting line feed, got {:?}", ch as char,);
-                session_live.expecting = ReplSessionExpecting::Prompt(String::new());
+                session_live.expecting = ReplSessionExpecting::Nothing;
                 vec![]
             }
         };
@@ -218,10 +214,13 @@ impl State {
             return self.session_end(id);
         };
 
-        session_live.expecting = ReplSessionExpecting::Echo {
-            acc: String::new(),
-            last_query: entry.query.clone(),
-            expected_result: entry.expected_result,
+        session_live.expecting = if let Some(expected_result) = entry.expected_result {
+            ReplSessionExpecting::Result {
+                acc: String::new(),
+                expected_result,
+            }
+        } else {
+            ReplSessionExpecting::BlankLine { saw_cr: false }
         };
 
         Ok(vec![OutputEvent::ReplCommand(ReplCommand::Query(
