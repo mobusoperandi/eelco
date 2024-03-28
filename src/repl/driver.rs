@@ -54,18 +54,14 @@ pub(crate) enum ReplEvent {
 pub(crate) struct ReplDriver {
     sessions: std::collections::BTreeMap<ExampleId, (pty_process::Pty, tokio::process::Child)>,
     sender: futures::channel::mpsc::UnboundedSender<ReplEvent>,
-    nix_path: camino::Utf8PathBuf,
 }
 
 impl ReplDriver {
-    pub(crate) fn new(
-        nix_path: camino::Utf8PathBuf,
-    ) -> (Self, futures::stream::LocalBoxStream<'static, ReplEvent>) {
+    pub(crate) fn new() -> (Self, futures::stream::LocalBoxStream<'static, ReplEvent>) {
         let (sender, receiver) = futures::channel::mpsc::unbounded::<ReplEvent>();
         let driver = Self {
             sessions: Default::default(),
             sender,
-            nix_path,
         };
         (driver, receiver.boxed_local())
     }
@@ -140,7 +136,7 @@ impl ReplDriver {
             }
         };
 
-        let child = pty_process::Command::new(&self.nix_path)
+        let child = pty_process::Command::new(env!("NIX_CMD_PATH"))
             .args(["repl", "--quiet"])
             .spawn(&pts);
 

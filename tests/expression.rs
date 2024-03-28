@@ -1,5 +1,7 @@
 mod util;
 
+use std::os::unix::fs::PermissionsExt;
+
 use assert_fs::fixture::FileWriteStr;
 use indoc::indoc;
 use predicates::{
@@ -59,14 +61,17 @@ fn io_error() {
             "})
             .unwrap();
 
+        let mut perms = file.metadata().unwrap().permissions();
+        perms.set_mode(0o000);
+        std::fs::set_permissions(&file, perms).unwrap();
+
         let mut eelco = assert_cmd::Command::cargo_bin("eelco").unwrap();
 
-        eelco.arg("brix");
         eelco.arg(file.as_os_str());
 
         eelco
             .assert()
             .failure()
-            .stderr("Error: No such file or directory (os error 2)\n");
+            .stderr(predicates::str::starts_with("Error: "));
     });
 }
