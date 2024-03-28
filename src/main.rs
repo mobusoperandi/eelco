@@ -22,8 +22,6 @@ use crate::{
 #[derive(Debug, clap::Parser)]
 #[command(version, about)]
 struct Cli {
-    /// Path to a `nix` executable
-    nix_path: camino::Utf8PathBuf,
     /// pattern (`glob` crate) of markdown filespaths
     sources: String,
 }
@@ -35,8 +33,8 @@ async fn main() -> anyhow::Result<()> {
     if examples.is_empty() {
         anyhow::bail!("could not find any examples");
     }
-    let (repl_driver, repl_events) = ReplDriver::new(cli.nix_path.clone());
-    let (expression_driver, expression_events) = ExpressionDriver::new(cli.nix_path);
+    let (repl_driver, repl_events) = ReplDriver::new();
+    let (expression_driver, expression_events) = ExpressionDriver::new();
     let (eprintln_driver, eprintln_events) = EprintlnDriver::new();
 
     let inputs = Inputs {

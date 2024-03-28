@@ -6,6 +6,7 @@
   inputs.fenix.url = "github:nix-community/fenix";
   inputs.flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
   inputs.flake-utils.url = "github:numtide/flake-utils";
+  inputs.nix.url = "github:NixOS/nix/2.18.2";
 
   outputs = {
     self,
@@ -13,6 +14,7 @@
     fenix,
     flake-compat,
     flake-utils,
+    nix,
     nixpkgs,
   }: let
     inherit (nixpkgs.lib) optional;
@@ -21,6 +23,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
       toolchain = fenix.packages.${system}.stable.completeToolchain;
       craneLib = crane.lib.${system}.overrideToolchain toolchain;
+      NIX_CMD_PATH = "${nix.packages.${system}.nix}/bin/nix";
 
       commonArgs = {
         src = craneLib.cleanCargoSource (craneLib.path ./.);
@@ -32,7 +35,7 @@
       packages.default = craneLib.buildPackage (
         commonArgs
         // {
-          inherit cargoArtifacts;
+          inherit cargoArtifacts NIX_CMD_PATH;
           nativeCheckInputs = [pkgs.nix];
           # 1. integration tests execute `nix`, which fails creating `/nix/var`
           # 2. integration tests require `/dev/ptmx`
@@ -41,6 +44,7 @@
       );
 
       devShells.default = craneLib.devShell {
+        inherit NIX_CMD_PATH;
         inputsFrom = [self.packages.${system}.default];
         packages = [
           toolchain
