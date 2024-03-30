@@ -6,7 +6,8 @@
   inputs.fenix.url = "github:nix-community/fenix";
   inputs.flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
   inputs.flake-utils.url = "github:numtide/flake-utils";
-  inputs.nix.url = "github:NixOS/nix/2.18.2";
+  inputs.nix.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.nix.url = "github:NixOS/nix/latest-release";
 
   outputs = {
     self,

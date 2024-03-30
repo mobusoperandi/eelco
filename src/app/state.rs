@@ -136,7 +136,7 @@ impl State {
                 acc.push(ch.into());
                 let string = String::from_utf8(strip_ansi_escapes::strip(acc)?)?;
 
-                if string == "nix-repl> " {
+                if string.ends_with("nix-repl> ") {
                     session_live.expecting = ReplSessionExpecting::Nothing;
                     self.next_query(&id)?
                 } else {
@@ -158,7 +158,7 @@ impl State {
                             expected_result: expected_result.clone(),
                         }
                     } else {
-                        ReplSessionExpecting::BlankLine { saw_cr: false }
+                        ReplSessionExpecting::Prompt(String::new())
                     };
                     vec![]
                 } else {
@@ -185,20 +185,6 @@ impl State {
                     })
                 }
 
-                session_live.expecting = ReplSessionExpecting::Prompt(String::new());
-                vec![]
-            }
-            ReplSessionExpecting::BlankLine { saw_cr: false } => {
-                anyhow::ensure!(
-                    ch == b'\r',
-                    "expecting carriage return, got {:?}",
-                    ch as char,
-                );
-                session_live.expecting = ReplSessionExpecting::BlankLine { saw_cr: true };
-                vec![]
-            }
-            ReplSessionExpecting::BlankLine { saw_cr: true } => {
-                anyhow::ensure!(ch == b'\n', "expecting line feed, got {:?}", ch as char,);
                 session_live.expecting = ReplSessionExpecting::Prompt(String::new());
                 vec![]
             }
