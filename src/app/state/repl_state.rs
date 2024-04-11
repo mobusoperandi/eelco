@@ -55,9 +55,6 @@ pub(crate) enum ReplSessionExpecting {
         acc: String,
         expected_result: ExpectedResult,
     },
-    BlankLine {
-        saw_cr: bool,
-    },
 }
 
 impl ReplSessionLive {

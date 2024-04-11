@@ -11,56 +11,28 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
-      - name: cache
-        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
-        with:
-          command: cache
-      - name: toolchain
-        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
-        with:
-          command: install-rustup
-          toolchain: stable
-      - name: install Nix
-        uses: cachix/install-nix-action@v23
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: test
-        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
-        with:
-          command: cargo test
+        run: nix develop --command cargo test
 
   clippy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: cache
-        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
-        with:
-          command: cache
-      - name: toolchain
-        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
-        with:
-          command: install-rustup
-          toolchain: stable
-          components: clippy
-      - name: test
-        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
-        with:
-          command: cargo clippy
-          args: --all-targets -- --deny warnings
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: clippy
+        run: nix develop --command cargo clippy --all-targets -- --deny warnings
 
   fmt:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: toolchain
-        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
-        with:
-          command: install-rustup
-          toolchain: stable
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: fmt
-        uses: FrancisRussell/ferrous-actions@v0.1.0-beta.1
-        with:
-          command: cargo fmt
-          args: --check
+        run: nix develop --command cargo fmt --check
 
   release:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}

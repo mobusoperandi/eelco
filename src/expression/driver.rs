@@ -13,7 +13,6 @@ pub(crate) struct ExpressionDriver {
         ExampleId,
         futures::future::LocalBoxFuture<'static, std::io::Result<std::process::Output>>,
     )>,
-    nix_path: camino::Utf8PathBuf,
 }
 
 #[derive(Debug)]
@@ -23,16 +22,13 @@ pub(crate) enum ExpressionEvent {
 }
 
 impl ExpressionDriver {
-    pub(crate) fn new(
-        nix_path: camino::Utf8PathBuf,
-    ) -> (
+    pub(crate) fn new() -> (
         Self,
         futures::stream::LocalBoxStream<'static, ExpressionEvent>,
     ) {
         let (sender, receiver) = futures::channel::mpsc::unbounded();
         let driver = Self {
             sender,
-            nix_path,
             nix_processes: Vec::new(),
         };
         (driver, receiver.boxed_local())
@@ -75,7 +71,7 @@ impl ExpressionDriver {
     }
 
     async fn spawn_nix(&mut self, example: ExpressionExample) {
-        let task = tokio::process::Command::new(&self.nix_path)
+        let task = tokio::process::Command::new(env!("NIX_CMD_PATH"))
             .args(["eval", "--expr"])
             .arg(example.expression)
             .output();
