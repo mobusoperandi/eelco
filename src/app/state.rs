@@ -132,7 +132,7 @@ impl State {
 
         let output = match &mut session_live.expecting {
             ReplSessionExpecting::Nothing => anyhow::bail!("not expecting, got {:?}", ch as char),
-            ReplSessionExpecting::InitialPrompt(acc) => {
+            ReplSessionExpecting::Prompt(acc) => {
                 acc.push(ch.into());
                 let string = String::from_utf8(strip_ansi_escapes::strip(acc)?)?;
 
@@ -158,7 +158,7 @@ impl State {
                             expected_result: expected_result.clone(),
                         }
                     } else {
-                        ReplSessionExpecting::InitialPrompt(String::new())
+                        ReplSessionExpecting::Prompt(String::new())
                     };
                     vec![]
                 } else {
