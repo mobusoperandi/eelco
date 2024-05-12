@@ -45,13 +45,13 @@ pub(crate) struct ReplSessionLive {
 #[derive(Debug)]
 pub(crate) enum ReplSessionExpecting {
     Nothing,
-    Prompt(String),
+    InitialPrompt(String),
     Echo {
         acc: String,
         last_query: ReplQuery,
         expected_result: Option<ExpectedResult>,
     },
-    Result {
+    ResultAndNextPrompt {
         acc: String,
         expected_result: ExpectedResult,
     },
@@ -61,7 +61,7 @@ impl ReplSessionLive {
     pub(crate) fn new(entries: ReplExampleEntries) -> Self {
         Self {
             iterator: entries.into_iter(),
-            expecting: ReplSessionExpecting::Prompt(String::new()),
+            expecting: ReplSessionExpecting::InitialPrompt(String::new()),
         }
     }
 }

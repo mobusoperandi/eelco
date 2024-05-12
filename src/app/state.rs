@@ -132,7 +132,7 @@ impl State {
 
         let output = match &mut session_live.expecting {
             ReplSessionExpecting::Nothing => anyhow::bail!("not expecting, got {:?}", ch as char),
-            ReplSessionExpecting::Prompt(acc) => {
+            ReplSessionExpecting::InitialPrompt(acc) => {
                 acc.push(ch.into());
                 let string = String::from_utf8(strip_ansi_escapes::strip(acc)?)?;
 
@@ -153,40 +153,39 @@ impl State {
                     vec![]
                 } else if Self::sanitize(acc)? == expected.as_str() {
                     session_live.expecting = if let Some(expected_result) = expected_result {
-                        ReplSessionExpecting::Result {
+                        ReplSessionExpecting::ResultAndNextPrompt {
                             acc: String::new(),
                             expected_result: expected_result.clone(),
                         }
                     } else {
-                        ReplSessionExpecting::Prompt(String::new())
+                        ReplSessionExpecting::InitialPrompt(String::new())
                     };
                     vec![]
                 } else {
                     anyhow::bail!("actual: {acc:?}, expected: {expected:?}");
                 }
             }
-            ReplSessionExpecting::Result {
+            ReplSessionExpecting::ResultAndNextPrompt {
                 acc,
                 expected_result,
             } => 'arm: {
                 acc.push(ch.into());
 
-                let Some(stripped_crlf_twice) = acc.strip_suffix("\r\n\r\n") else {
+                let sanitized = Self::sanitize(acc)?;
+
+                let Some(result) = sanitized.strip_suffix("\n\nnix-repl> ") else {
                     break 'arm vec![];
                 };
 
-                let sanitized = Self::sanitize(stripped_crlf_twice)?;
-
-                if sanitized != expected_result.as_str() {
+                if result != expected_result.as_str() {
                     anyhow::bail!(indoc::formatdoc! {"
                         {id}
-                        actual (sanitized): {sanitized}
+                        actual (sanitized): {result}
                         expected          : {expected_result}"
                     })
                 }
 
-                session_live.expecting = ReplSessionExpecting::Prompt(String::new());
-                vec![]
+                self.next_query(&id)?
             }
         };
 
