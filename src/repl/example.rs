@@ -31,7 +31,7 @@ enum Expecting {
     #[default]
     PromptAndQuery,
     ResultOrBlankLine(ReplQuery),
-    BlankLine(ReplQuery, Option<ExpectedResult>),
+    BlankLine(ReplQuery, ExpectedResult),
 }
 
 impl std::str::FromStr for ReplExampleEntries {
@@ -53,10 +53,12 @@ impl std::str::FromStr for ReplExampleEntries {
                         }
                         Expecting::ResultOrBlankLine(query) => {
                             if line.as_str() == "\n" {
-                                state.entries.push(ReplEntry::new(query, None));
+                                state
+                                    .entries
+                                    .push(ReplEntry::new(query, ExpectedResult::empty()));
                                 state.expecting = Expecting::PromptAndQuery;
                             } else {
-                                let expected = Some(ExpectedResult::from(line));
+                                let expected = ExpectedResult::from(line);
                                 state.expecting = Expecting::BlankLine(query, expected);
                             }
                         }
@@ -84,11 +86,11 @@ impl std::str::FromStr for ReplExampleEntries {
 #[derive(Debug, Clone)]
 pub(crate) struct ReplEntry {
     pub(crate) query: ReplQuery,
-    pub(crate) expected_result: Option<ExpectedResult>,
+    pub(crate) expected_result: ExpectedResult,
 }
 
 impl ReplEntry {
-    pub(crate) fn new(query: ReplQuery, expected_result: Option<ExpectedResult>) -> Self {
+    pub(crate) fn new(query: ReplQuery, expected_result: ExpectedResult) -> Self {
         Self {
             query,
             expected_result,
