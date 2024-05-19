@@ -152,13 +152,9 @@ impl State {
                 if !acc.ends_with('\n') {
                     vec![]
                 } else if Self::sanitize(acc)? == expected.as_str() {
-                    session_live.expecting = if let Some(expected_result) = expected_result {
-                        ReplSessionExpecting::ResultAndNextPrompt {
-                            acc: String::new(),
-                            expected_result: expected_result.clone(),
-                        }
-                    } else {
-                        ReplSessionExpecting::Prompt(String::new())
+                    session_live.expecting = ReplSessionExpecting::ResultAndNextPrompt {
+                        acc: String::new(),
+                        expected_result: expected_result.clone(),
                     };
                     vec![]
                 } else {
@@ -173,9 +169,11 @@ impl State {
 
                 let sanitized = Self::sanitize(acc)?;
 
-                let Some(result) = sanitized.strip_suffix("\n\nnix-repl> ") else {
+                let Some(result) = sanitized.strip_suffix("\nnix-repl> ") else {
                     break 'arm vec![];
                 };
+
+                let result = result.trim_end_matches('\n');
 
                 if result != expected_result.as_str() {
                     anyhow::bail!(indoc::formatdoc! {"
