@@ -83,7 +83,7 @@ impl std::str::FromStr for ReplExampleEntries {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct ReplEntry {
     pub(crate) query: ReplQuery,
     pub(crate) expected_result: ExpectedResult,
@@ -99,3 +99,142 @@ impl ReplEntry {
 }
 
 pub(crate) const NIX_REPL_LANG_TAG: &str = "nix-repl";
+
+#[cfg(test)]
+mod test {
+    use indoc::indoc;
+    use pretty_assertions::assert_eq;
+
+    use crate::repl::example::ReplExampleEntries;
+
+    use super::{ExpectedResult, ReplEntry, ReplQuery};
+
+    #[derive(PartialEq, Eq, Debug)]
+    struct Case {
+        input: &'static str,
+        expected_output: Vec<ReplEntry>,
+    }
+
+    #[derive(Debug, PartialEq, Eq)]
+    struct Failure {
+        case: Case,
+        actual_output: Vec<ReplEntry>,
+    }
+
+    macro_rules! parse_success {
+        ($(
+            {
+                input: $input:expr,
+                expected_output: [$(
+                    {
+                        query: $query:expr,
+                        expected_result: $expected_result:expr,
+                    },
+                )*],
+            },
+        )*) => {
+            #[test]
+            fn parse_success() {
+                let cases = vec![$(
+                    Case {
+                        input: $input,
+                        expected_output: vec![$(
+                            ReplEntry::new(
+                                ReplQuery::new($query.parse().unwrap()),
+                                ExpectedResult($expected_result.to_owned()),
+                            ),
+                        )*],
+                    },
+                )*];
+
+                test_parse_success_cases(cases);
+            }
+        };
+    }
+
+    fn test_parse_success_cases(cases: Vec<Case>) {
+        let failures: Vec<Failure> = cases
+            .into_iter()
+            .filter_map(|case| {
+                let actual: ReplExampleEntries = case.input.parse().unwrap();
+                let actual_output = actual.0;
+                if actual_output == case.expected_output {
+                    None
+                } else {
+                    Some(Failure {
+                        case,
+                        actual_output,
+                    })
+                }
+            })
+            .collect();
+        assert_eq!(failures, vec![]);
+    }
+
+    parse_success! [
+        {
+            input: indoc! {"
+                nix-repl> 1 + 1
+                2
+
+            "},
+            expected_output: [
+                {
+                    query: "1 + 1\n",
+                    expected_result: "2",
+                },
+            ],
+        },
+        {
+            input: indoc! {"
+                nix-repl> a = 1
+
+            "},
+            expected_output: [
+                {
+                    query: "a = 1\n",
+                    expected_result: "",
+                },
+            ],
+        },
+        {
+            input: indoc! {r#"
+                nix-repl> 1 + 1
+                2
+
+                nix-repl> "a" + "b"
+                "ab"
+
+            "#},
+            expected_output: [
+                {
+                    query: "1 + 1\n",
+                    expected_result: "2",
+                },
+                {
+                    query: "\"a\" + \"b\"\n",
+                    expected_result: "\"ab\"",
+                },
+            ],
+        },
+        {
+            input: indoc! {r#"
+                nix-repl> b = "b"
+
+                nix-repl> 1
+                1
+
+            "#},
+            expected_output: [
+                {
+                    query: "b = \"b\"\n",
+                    expected_result: "",
+                },
+                {
+                    query: "1\n",
+                    expected_result: "1",
+                },
+            ],
+        },
+    ];
+}
