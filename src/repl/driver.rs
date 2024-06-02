@@ -7,10 +7,8 @@ use crate::example_id::ExampleId;
 #[derive(Debug, Clone, PartialEq, Eq, derive_more::Deref, derive_more::Display)]
 pub(crate) struct LFLine(String);
 
-impl std::str::FromStr for LFLine {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+impl LFLine {
+    fn validate_str(s: &str) -> anyhow::Result<()> {
         s.chars()
             .with_position()
             .try_for_each(|(position, character)| {
@@ -23,7 +21,25 @@ impl std::str::FromStr for LFLine {
                     (_, _) => Ok(()),
                 }
             })?;
+        Ok(())
+    }
+}
+
+impl std::str::FromStr for LFLine {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::validate_str(s)?;
         Ok(Self(s.to_string()))
+    }
+}
+
+impl TryFrom<String> for LFLine {
+    type Error = anyhow::Error;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::validate_str(&s)?;
+        Ok(Self(s))
     }
 }
 

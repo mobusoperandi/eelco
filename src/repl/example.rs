@@ -1,6 +1,8 @@
+use anyhow::bail;
+
 use crate::{app::state::repl_state::ExpectedResult, example_id::ExampleId};
 
-use super::driver::{LFLine, ReplQuery};
+use super::driver::ReplQuery;
 
 #[derive(Debug, Clone)]
 pub(crate) struct ReplExample {
@@ -20,66 +22,29 @@ impl ReplExample {
 #[derive(Debug, Clone, derive_more::IntoIterator)]
 pub(crate) struct ReplExampleEntries(Vec<ReplEntry>);
 
-#[derive(Debug, Default)]
-struct ParseState {
-    entries: Vec<ReplEntry>,
-    expecting: Expecting,
-}
-
-#[derive(Debug, Default, PartialEq, Eq)]
-enum Expecting {
-    #[default]
-    PromptAndQuery,
-    ResultOrBlankLine(ReplQuery),
-    BlankLine(ReplQuery, ExpectedResult),
-}
-
 impl std::str::FromStr for ReplExampleEntries {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let final_state =
-            s.split_inclusive('\n')
-                .try_fold(ParseState::default(), |mut state, line| {
-                    let line = LFLine::from_str(line)?;
-                    match state.expecting {
-                        Expecting::PromptAndQuery => {
-                            let Some(line) = line.strip_prefix("nix-repl> ") else {
-                                anyhow::bail!("expected prompt, found {line:?}");
-                            };
-                            let query = LFLine::from_str(line).unwrap();
-                            let query = ReplQuery::new(query);
-                            state.expecting = Expecting::ResultOrBlankLine(query);
-                        }
-                        Expecting::ResultOrBlankLine(query) => {
-                            if line.as_str() == "\n" {
-                                state
-                                    .entries
-                                    .push(ReplEntry::new(query, ExpectedResult::empty()));
-                                state.expecting = Expecting::PromptAndQuery;
-                            } else {
-                                let expected = ExpectedResult::from(line);
-                                state.expecting = Expecting::BlankLine(query, expected);
-                            }
-                        }
-                        Expecting::BlankLine(query, expected) => {
-                            anyhow::ensure!(
-                                line.as_str() == "\n",
-                                "expected blank line, found {line:?}"
-                            );
-                            state.entries.push(ReplEntry::new(query, expected));
-                            state.expecting = Expecting::PromptAndQuery;
-                        }
-                    }
-                    Ok(state)
-                })?;
+        let Some(rest) = s.strip_prefix("nix-repl> ") else {
+            bail!("repl example must start with a prompt")
+        };
 
-        anyhow::ensure!(
-            final_state.expecting == Expecting::PromptAndQuery,
-            "failed to parse"
-        );
+        let entries = rest
+            .split("\nnix-repl> ")
+            .map(|pair| {
+                let Some((query, expected)) = pair.split_once('\n') else {
+                    bail!("query must be followed by a line feed")
+                };
 
-        Ok(Self(final_state.entries))
+                Ok(ReplEntry::new(
+                    ReplQuery::new(format!("{query}\n").try_into().unwrap()),
+                    ExpectedResult(expected.trim_end().to_owned()),
+                ))
+            })
+            .collect::<Result<_, _>>()?;
+
+        Ok(Self(entries))
     }
 }
 
@@ -233,6 +198,27 @@ mod test {
                 {
                     query: "1\n",
                     expected_result: "1",
+                },
+            ],
+        },
+        {
+            input: indoc! {r#"
+                nix-repl> { a=1; b=2; }
+                {
+                  a = 1
+                  b = 2
+                }
+
+            "#},
+            expected_output: [
+                {
+                    query: "{ a=1; b=2; }\n",
+                    expected_result: indoc! {"
+                        {
+                          a = 1
+                          b = 2
+                        }\
+                    "},
                 },
             ],
         },
