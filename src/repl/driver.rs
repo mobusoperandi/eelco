@@ -64,7 +64,8 @@ pub(crate) enum ReplEvent {
     Spawn(pty_process::Result<ExampleId>),
     Query(ExampleId, ReplQuery, anyhow::Result<()>),
     Kill(anyhow::Result<ExampleId>),
-    Read(ExampleId, std::io::Result<u8>),
+    Read(ExampleId, u8),
+    Error(std::io::Error),
 }
 
 pub(crate) struct ReplDriver {
@@ -102,15 +103,12 @@ impl ReplDriver {
                     match byte {
                         Ok(byte) => {
                             self.sender
-                                .send(ReplEvent::Read(id.clone(), Ok(byte)))
+                                .send(ReplEvent::Read(id.clone(), byte))
                                 .await
                                 .unwrap();
                         }
                         Err(error) => {
-                            self.sender
-                                .send(ReplEvent::Read(id.clone(), Err(error)))
-                                .await
-                                .unwrap();
+                            self.sender.send(ReplEvent::Error(error)).await.unwrap();
                         }
                     }
                 }

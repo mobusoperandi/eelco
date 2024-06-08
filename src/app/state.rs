@@ -81,6 +81,7 @@ impl State {
             ReplEvent::Query(id, query, result) => self.repl_event_query(id, query, result),
             ReplEvent::Kill(id) => self.repl_event_kill(id),
             ReplEvent::Read(id, result) => self.repl_event_read(id, result),
+            ReplEvent::Error(error) => Err(error.into()),
         }
     }
 
@@ -121,14 +122,9 @@ impl State {
         Ok(Vec::new())
     }
 
-    fn repl_event_read(
-        &mut self,
-        id: ExampleId,
-        result: std::io::Result<u8>,
-    ) -> anyhow::Result<Vec<OutputEvent>> {
+    fn repl_event_read(&mut self, id: ExampleId, ch: u8) -> anyhow::Result<Vec<OutputEvent>> {
         let session_live = self.examples.get_mut_repl(&id)?;
         let session_live = session_live.state.live_mut()?;
-        let ch = result?;
 
         let output = match &mut session_live.expecting {
             ReplSessionExpecting::Nothing => anyhow::bail!("not expecting, got {:?}", ch as char),
