@@ -123,13 +123,14 @@ impl State {
     }
 
     fn repl_event_read(&mut self, id: ExampleId, ch: u8) -> anyhow::Result<Vec<OutputEvent>> {
+        let ch = ch as char;
         let session_live = self.examples.get_mut_repl(&id)?;
         let session_live = session_live.state.live_mut()?;
 
         let output = match &mut session_live.expecting {
-            ReplSessionExpecting::Nothing => anyhow::bail!("not expecting, got {:?}", ch as char),
+            ReplSessionExpecting::Nothing => anyhow::bail!("not expecting, got {:?}", ch),
             ReplSessionExpecting::Prompt(acc) => {
-                acc.push(ch.into());
+                acc.push(ch);
                 let string = String::from_utf8(strip_ansi_escapes::strip(acc)?)?;
 
                 if string.ends_with("nix-repl> ") {
@@ -144,7 +145,7 @@ impl State {
                 last_query: expected,
                 expected_result,
             } => {
-                acc.push(ch.into());
+                acc.push(ch);
                 if !acc.ends_with('\n') {
                     vec![]
                 } else if Self::sanitize(acc)? == expected.as_str() {
@@ -161,7 +162,7 @@ impl State {
                 acc,
                 expected_result,
             } => 'arm: {
-                acc.push(ch.into());
+                acc.push(ch);
 
                 let sanitized = Self::sanitize(acc)?;
 
