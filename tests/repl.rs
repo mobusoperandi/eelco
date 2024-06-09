@@ -39,11 +39,21 @@ fn result_mismatch() {
 
         let file_path = file.path().to_str().unwrap();
 
-        eelco.assert().failure().stderr(formatdoc! {r#"
+        eelco.assert().failure().stderr(formatdoc! {"
             Error: {file_path}:1
-            actual (sanitized): 2
-            expected          : 3
-        "#});
+
+            Actual:
+
+            ```
+            2
+            ```
+
+            Expected:
+
+            ```
+            3
+            ```
+        "});
     });
 }
 

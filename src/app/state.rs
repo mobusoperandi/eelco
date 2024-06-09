@@ -174,8 +174,18 @@ impl State {
                 if result != expected_result.as_str() {
                     anyhow::bail!(indoc::formatdoc! {"
                         {id}
-                        actual (sanitized): {result}
-                        expected          : {expected_result}"
+
+                        Actual:
+
+                        ```
+                        {result}
+                        ```
+
+                        Expected:
+
+                        ```
+                        {expected_result}
+                        ```"
                     })
                 }
 
