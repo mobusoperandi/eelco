@@ -1,3 +1,8 @@
+use std::{
+    os::fd::{FromRawFd, IntoRawFd},
+    process::Stdio,
+};
+
 use futures::{FutureExt, SinkExt, StreamExt};
 use itertools::Itertools;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -61,7 +66,7 @@ pub(crate) enum ReplCommand {
 
 #[derive(Debug)]
 pub(crate) enum ReplEvent {
-    Spawn(pty_process::Result<ExampleId>),
+    Spawn(std::io::Result<ExampleId>),
     Query(ExampleId, ReplQuery, anyhow::Result<()>),
     Kill(anyhow::Result<ExampleId>),
     Read(ExampleId, u8),
@@ -69,7 +74,7 @@ pub(crate) enum ReplEvent {
 }
 
 pub(crate) struct ReplDriver {
-    sessions: std::collections::BTreeMap<ExampleId, (pty_process::Pty, tokio::process::Child)>,
+    sessions: std::collections::BTreeMap<ExampleId, (tokio::process::Child, tokio::fs::File)>,
     sender: futures::channel::mpsc::UnboundedSender<ReplEvent>,
 }
 
@@ -94,8 +99,8 @@ impl ReplDriver {
                     self.command(command).await;
                 }
 
-                for (id, (pty, _child)) in self.sessions.iter_mut() {
-                    let byte = futures::poll!(std::pin::pin!(pty.read_u8()));
+                for (id, (_child, child_output)) in self.sessions.iter_mut() {
+                    let byte = futures::poll!(std::pin::pin!(child_output.read_u8()));
                     let std::task::Poll::Ready(byte) = byte else {
                         continue;
                     };
@@ -128,31 +133,16 @@ impl ReplDriver {
     }
 
     async fn spawn(&mut self, id: ExampleId) {
-        let pty = match pty_process::Pty::new() {
-            Ok(pty) => pty,
-            Err(error) => {
-                self.sender
-                    .send(ReplEvent::Spawn(Err(error)))
-                    .await
-                    .unwrap();
-                return;
-            }
-        };
+        let (read_output, write_output) = nix::unistd::pipe().unwrap();
 
-        let pts = match pty.pts() {
-            Ok(pts) => pts,
-            Err(error) => {
-                self.sender
-                    .send(ReplEvent::Spawn(Err(error)))
-                    .await
-                    .unwrap();
-                return;
-            }
-        };
-
-        let child = pty_process::Command::new(env!("NIX_CMD_PATH"))
-            .args(["repl", "--quiet"])
-            .spawn(&pts);
+        let child = tokio::process::Command::new(env!("NIX_CMD_PATH"))
+            // even though a single `--quiet` would normally disable the pre-prompt message
+            // (at the time of writing `Nix 2.21.1`), two seem to be necessary here.
+            .args(["repl", "--quiet", "--quiet"])
+            .stdin(Stdio::piped())
+            .stdout(write_output.try_clone().unwrap())
+            .stderr(write_output)
+            .spawn();
 
         let child = match child {
             Err(error) => {
@@ -165,13 +155,14 @@ impl ReplDriver {
             Ok(child) => child,
         };
 
-        self.sessions.insert(id.clone(), (pty, child));
+        let read_output = unsafe { tokio::fs::File::from_raw_fd(read_output.into_raw_fd()) };
+        self.sessions.insert(id.clone(), (child, read_output));
         self.sender.send(ReplEvent::Spawn(Ok(id))).await.unwrap();
     }
 
     async fn query(&mut self, id: ExampleId, query: ReplQuery) {
-        let (pty, _child) = match self.sessions.get_mut(&id) {
-            Some(pty) => pty,
+        let child = match self.sessions.get_mut(&id) {
+            Some((child, _file)) => child,
             None => {
                 let error = anyhow::anyhow!("no pty for {id:?}");
                 self.sender
@@ -182,7 +173,13 @@ impl ReplDriver {
             }
         };
 
-        let write = pty.write_all(query.as_bytes()).await;
+        let write = child
+            .stdin
+            .as_mut()
+            .unwrap()
+            .write_all(query.as_bytes())
+            .await;
+
         if let Err(error) = write {
             let error = anyhow::anyhow!("failed to query {error}");
             self.sender

@@ -18,14 +18,9 @@ futures = "0.3.28"
 glob = "0.3.1"
 indoc = "2.0.3"
 itertools = "0.11.0"
+nix = "0.28.0"
 strip-ansi-escapes = "0.1.1"
-tokio = { version = "1.29.1", features = ["macros", "rt-multi-thread", "io-util"] }
-
-[dependencies.pty-process]
-version = "0.4.0"
-features = ["async"]
-git = "https://github.com/mobusoperandi/pty-process.git"
-rev = "7889630"
+tokio = { version = "1.29.1", features = ["macros", "rt-multi-thread", "io-util", "process", "fs"] }
 
 [dev-dependencies]
 assert_cmd = "2.0.12"

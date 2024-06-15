@@ -87,7 +87,7 @@ impl State {
 
     fn repl_event_spawn(
         &mut self,
-        spawn: Result<ExampleId, pty_process::Error>,
+        spawn: Result<ExampleId, std::io::Error>,
     ) -> anyhow::Result<Vec<OutputEvent>> {
         let id = spawn?;
 
@@ -128,48 +128,46 @@ impl State {
         let session_live = session_live.state.live_mut()?;
 
         let output = match &mut session_live.expecting {
-            ReplSessionExpecting::Nothing => anyhow::bail!("not expecting, got {:?}", ch),
-            ReplSessionExpecting::Prompt(acc) => {
-                acc.push(ch);
-                let string = String::from_utf8(strip_ansi_escapes::strip(acc)?)?;
-
-                if string.ends_with("nix-repl> ") {
-                    session_live.expecting = ReplSessionExpecting::Nothing;
-                    self.next_query(&id)?
-                } else {
-                    vec![]
+            ReplSessionExpecting::ClearlineBeforeInitialPrompt { cl_progress } => {
+                use ClearLineProgressStatus::*;
+                match cl_progress.clone().character(ch)? {
+                    InProgress(progress) => {
+                        *cl_progress = progress;
+                        vec![]
+                    }
+                    ReachedEnd => self.next_query(&id)?,
                 }
             }
-            ReplSessionExpecting::Echo {
-                acc,
-                last_query: expected,
+            ReplSessionExpecting::ClearLineBeforeResult {
+                cl_progress,
                 expected_result,
             } => {
-                acc.push(ch);
-                if !acc.ends_with('\n') {
-                    vec![]
-                } else if Self::sanitize(acc)? == expected.as_str() {
-                    session_live.expecting = ReplSessionExpecting::ResultAndNextPrompt {
-                        acc: String::new(),
-                        expected_result: expected_result.clone(),
-                    };
-                    vec![]
-                } else {
-                    anyhow::bail!("actual: {acc:?}, expected: {expected:?}");
-                }
+                use ClearLineProgressStatus::*;
+                match cl_progress.clone().character(ch)? {
+                    InProgress(progress) => {
+                        *cl_progress = progress;
+                    }
+                    ReachedEnd => {
+                        session_live.expecting =
+                            ReplSessionExpecting::ResultAndClearlineBeforeNextPrompt {
+                                acc: String::new(),
+                                expected_result: expected_result.clone(),
+                            };
+                    }
+                };
+                vec![]
             }
-            ReplSessionExpecting::ResultAndNextPrompt {
+            ReplSessionExpecting::ResultAndClearlineBeforeNextPrompt {
                 acc,
                 expected_result,
             } => 'arm: {
                 acc.push(ch);
 
-                let sanitized = Self::sanitize(acc)?;
-
-                let Some(result) = sanitized.strip_suffix("\nnix-repl> ") else {
+                let Some(result) = acc.strip_suffix(CLEAR_LINE) else {
                     break 'arm vec![];
                 };
 
+                let result = Self::sanitize(result)?;
                 let result = result.trim_end_matches('\n');
 
                 if result != expected_result.as_str() {
@@ -208,9 +206,8 @@ impl State {
             return self.session_end(id);
         };
 
-        session_live.expecting = ReplSessionExpecting::Echo {
-            acc: String::new(),
-            last_query: entry.query.clone(),
+        session_live.expecting = ReplSessionExpecting::ClearLineBeforeResult {
+            cl_progress: ClearLineProgress::new(),
             expected_result: entry.expected_result,
         };
 
@@ -340,4 +337,33 @@ impl ExamplesState {
 pub(crate) enum ExampleState {
     Repl(ReplExampleState),
     Expression(ExpressionExampleState),
+}
+
+const CLEAR_LINE: &str = "\r\u{1b}[K";
+
+#[derive(Debug, Clone)]
+pub struct ClearLineProgress(std::iter::Peekable<std::str::Chars<'static>>);
+
+impl ClearLineProgress {
+    fn character(mut self, ch: char) -> anyhow::Result<ClearLineProgressStatus> {
+        let expected = self.0.next().unwrap();
+        if ch != expected {
+            bail!("expected {expected:?}, got {ch:?}")
+        }
+        Ok(if self.0.peek().is_none() {
+            ClearLineProgressStatus::ReachedEnd
+        } else {
+            ClearLineProgressStatus::InProgress(self)
+        })
+    }
+
+    fn new() -> Self {
+        Self(CLEAR_LINE.chars().peekable())
+    }
+}
+
+#[derive(Debug, Clone)]
+enum ClearLineProgressStatus {
+    InProgress(ClearLineProgress),
+    ReachedEnd,
 }
