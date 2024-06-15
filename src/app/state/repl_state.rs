@@ -1,7 +1,9 @@
 use crate::repl::{
-    driver::{LFLine, ReplQuery},
+    driver::LFLine,
     example::{ReplEntry, ReplExample, ReplExampleEntries},
 };
+
+use super::ClearLineProgress;
 
 #[derive(Debug)]
 pub(crate) struct ReplExampleState {
@@ -44,14 +46,14 @@ pub(crate) struct ReplSessionLive {
 
 #[derive(Debug)]
 pub(crate) enum ReplSessionExpecting {
-    Nothing,
-    Prompt(String),
-    Echo {
-        acc: String,
-        last_query: ReplQuery,
+    ClearlineBeforeInitialPrompt {
+        cl_progress: ClearLineProgress,
+    },
+    ClearLineBeforeResult {
+        cl_progress: ClearLineProgress,
         expected_result: ExpectedResult,
     },
-    ResultAndNextPrompt {
+    ResultAndClearlineBeforeNextPrompt {
         acc: String,
         expected_result: ExpectedResult,
     },
@@ -61,7 +63,9 @@ impl ReplSessionLive {
     pub(crate) fn new(entries: ReplExampleEntries) -> Self {
         Self {
             iterator: entries.into_iter(),
-            expecting: ReplSessionExpecting::Prompt(String::new()),
+            expecting: ReplSessionExpecting::ClearlineBeforeInitialPrompt {
+                cl_progress: ClearLineProgress::new(),
+            },
         }
     }
 }
