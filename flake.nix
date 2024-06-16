@@ -24,7 +24,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
       toolchain = fenix.packages.${system}.stable.completeToolchain;
       craneLib = crane.lib.${system}.overrideToolchain toolchain;
-      NIX_CMD_PATH = "${nix.packages.${system}.nix}/bin/nix";
+      NIX_BIN_DIR = "${nix.packages.${system}.nix}/bin";
 
       commonArgs = {
         src = craneLib.cleanCargoSource (craneLib.path ./.);
@@ -36,7 +36,7 @@
       packages.default = craneLib.buildPackage (
         commonArgs
         // {
-          inherit cargoArtifacts NIX_CMD_PATH;
+          inherit cargoArtifacts NIX_BIN_DIR;
           nativeCheckInputs = [pkgs.nix];
           # 1. integration tests execute `nix`, which fails creating `/nix/var`
           # 2. integration tests require `/dev/ptmx`
@@ -45,7 +45,7 @@
       );
 
       devShells.default = craneLib.devShell {
-        inherit NIX_CMD_PATH;
+        inherit NIX_BIN_DIR;
         inputsFrom = [self.packages.${system}.default];
         packages = [
           toolchain
