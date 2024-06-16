@@ -135,7 +135,7 @@ impl ReplDriver {
     async fn spawn(&mut self, id: ExampleId) {
         let (read_output, write_output) = nix::unistd::pipe().unwrap();
 
-        let child = tokio::process::Command::new(env!("NIX_CMD_PATH"))
+        let child = tokio::process::Command::new(concat!(env!("NIX_BIN_DIR"), "/nix"))
             // even though a single `--quiet` would normally disable the pre-prompt message
             // (at the time of writing `Nix 2.21.1`), two seem to be necessary here.
             .args(["repl", "--quiet", "--quiet"])

@@ -71,8 +71,8 @@ impl ExpressionDriver {
     }
 
     async fn spawn_nix(&mut self, example: ExpressionExample) {
-        let task = tokio::process::Command::new(env!("NIX_CMD_PATH"))
-            .args(["eval", "--expr"])
+        let task = tokio::process::Command::new(concat!(env!("NIX_BIN_DIR"), "/nix-instantiate"))
+            .args(["--expr", "--eval"])
             .arg(example.expression)
             .output();
 
