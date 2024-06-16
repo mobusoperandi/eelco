@@ -8,6 +8,8 @@
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.nix.inputs.nixpkgs.follows = "nixpkgs";
   inputs.nix.url = "github:NixOS/nix/latest-release";
+  inputs.treefmt-nix.url = "github:numtide/treefmt-nix";
+  inputs.treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs = {
     self,
@@ -17,8 +19,9 @@
     flake-utils,
     nix,
     nixpkgs,
+    treefmt-nix,
   }: let
-    inherit (nixpkgs.lib) optional;
+    inherit (nixpkgs.lib) optional mkForce;
   in
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
@@ -32,6 +35,13 @@
       };
 
       cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+
+      treefmtEval = treefmt-nix.lib.evalModule pkgs {
+        projectRootFile = "flake.nix";
+        programs.alejandra.enable = true;
+        programs.rustfmt.enable = true;
+        settings.formatter.rustfmt.command = mkForce "${toolchain}/bin/rustfmt";
+      };
     in {
       packages.default = craneLib.buildPackage (
         commonArgs
@@ -52,5 +62,9 @@
           pkgs.mob
         ];
       };
+
+      formatter = treefmtEval.config.build.wrapper;
+
+      checks.formatting = treefmtEval.config.build.check self;
     });
 }
