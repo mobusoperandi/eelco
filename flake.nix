@@ -21,13 +21,30 @@
     nixpkgs,
     treefmt-nix,
   }: let
-    inherit (nixpkgs.lib) optional mkForce;
+    inherit (nixpkgs.lib) getExe optional mkForce;
   in
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
       toolchain = fenix.packages.${system}.stable.completeToolchain;
       craneLib = crane.lib.${system}.overrideToolchain toolchain;
-      NIX_BIN_DIR = "${nix.packages.${system}.nix}/bin";
+      nixDrv = nix.packages.${system}.nix;
+
+      isolatedNix = postfix:
+        pkgs.symlinkJoin {
+          name = "isolated-nix${postfix}";
+          paths = [nixDrv];
+          nativeBuildInputs = [pkgs.makeWrapper];
+          postBuild = ''
+            wrapProgram $out/bin/nix${postfix} \
+              --set NIX_CONF_DIR /dev/null \
+              --set NIX_USER_CONF_FILES /dev/null \
+              --unset NIX_CONFIG
+          '';
+          meta.mainProgram = "nix${postfix}";
+        };
+
+      NIX_CMD_PATH = getExe (isolatedNix "");
+      NIX_INSTANTIATE_CMD_PATH = getExe (isolatedNix "-instantiate");
 
       commonArgs = {
         src = craneLib.cleanCargoSource (craneLib.path ./.);
@@ -46,7 +63,7 @@
       packages.default = craneLib.buildPackage (
         commonArgs
         // {
-          inherit cargoArtifacts NIX_BIN_DIR;
+          inherit cargoArtifacts NIX_CMD_PATH NIX_INSTANTIATE_CMD_PATH;
           nativeCheckInputs = [pkgs.nix];
           # 1. integration tests execute `nix`, which fails creating `/nix/var`
           # 2. integration tests require `/dev/ptmx`
@@ -55,7 +72,7 @@
       );
 
       devShells.default = craneLib.devShell {
-        inherit NIX_BIN_DIR;
+        inherit NIX_CMD_PATH NIX_INSTANTIATE_CMD_PATH;
         inputsFrom = [self.packages.${system}.default];
         packages = [
           toolchain
