@@ -4,6 +4,8 @@ This is a CLI that reads markdown files,
 extracts Nix examples from them and
 tests these examples.
 
+For CLI docs see the output with the `--help` flag.
+
 Two kinds of examples are supported:
 
 1. expression examples
