@@ -6,8 +6,6 @@
   inputs.fenix.url = "github:nix-community/fenix";
   inputs.flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
   inputs.flake-utils.url = "github:numtide/flake-utils";
-  inputs.nix.inputs.nixpkgs.follows = "nixpkgs";
-  inputs.nix.url = "github:NixOS/nix/latest-release";
   inputs.treefmt-nix.url = "github:numtide/treefmt-nix";
   inputs.treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -17,7 +15,6 @@
     fenix,
     flake-compat,
     flake-utils,
-    nix,
     nixpkgs,
     treefmt-nix,
   }: let
@@ -26,8 +23,8 @@
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
       toolchain = fenix.packages.${system}.stable.completeToolchain;
-      craneLib = crane.lib.${system}.overrideToolchain toolchain;
-      nixDrv = nix.packages.${system}.nix;
+      craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
+      nixDrv = pkgs.nixVersions.nix_2_21;
 
       isolatedNix = postfix:
         pkgs.symlinkJoin {

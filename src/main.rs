@@ -67,10 +67,6 @@ async fn main() -> anyhow::Result<()> {
     }
 }
 
-#[derive(Debug, Clone, derive_more::Display)]
-#[display("{}", _0)]
-struct Eprintln(String);
-
 #[derive(Debug, derive_more::Deref)]
 struct PtyLine(String);
 
