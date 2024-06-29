@@ -1,3 +1,21 @@
+## [2.0.0](https://github.com/mobusoperandi/eelco/compare/v1.3.0...v2.0.0) (2024-06-29)
+
+### ⚠ BREAKING CHANGES
+
+* **flake:** nix provided via NIX_CMD_PATH
+
+### Features
+
+* do not rely on nix experimental ([15e84f7](https://github.com/mobusoperandi/eelco/commit/15e84f7845ecdbacb91829d91cf651c2352af439))
+* does not rely on a pty ([e8adac0](https://github.com/mobusoperandi/eelco/commit/e8adac09d8796eaed23afb71f5127d8cd3b1cdfb))
+* **flake:** nix provided via NIX_CMD_PATH ([b478c9d](https://github.com/mobusoperandi/eelco/commit/b478c9db2ae22cbf52974b74ec268759023971fb))
+* multiline results ([c8b068c](https://github.com/mobusoperandi/eelco/commit/c8b068c2c4b133580aed3cb74fca40d3837651e4))
+* rewrite result mismatch error ([b2b0190](https://github.com/mobusoperandi/eelco/commit/b2b01907db72d61927226de2c8db0539009dd607))
+
+### Bug Fixes
+
+* wrapped nix ([56c90fe](https://github.com/mobusoperandi/eelco/commit/56c90fef8bca0f4bc3f0e530f789326643fc2fa7))
+
 # Changelog
 
 ## [1.3.0](https://github.com/mobusoperandi/eelco/compare/v1.2.0...v1.3.0) (2024-02-22)
