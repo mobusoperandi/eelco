@@ -68,11 +68,14 @@
         }
       );
 
+      apps = import ./release {inherit pkgs flake-utils;};
+
       devShells.default = craneLib.devShell {
         inherit NIX_CMD_PATH NIX_INSTANTIATE_CMD_PATH;
         inputsFrom = [self.packages.${system}.default];
         packages = [
           toolchain
+          pkgs.nodePackages.nodejs
           pkgs.mob
         ];
       };

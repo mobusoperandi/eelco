@@ -1,0 +1,25 @@
+on:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    uses: ./.github/workflows/check.yaml
+
+  release:
+    needs: [check]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - uses: navikt/github-app-token-generator@v1
+        id: get-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+      - run: nix run .#release
+        env:
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
