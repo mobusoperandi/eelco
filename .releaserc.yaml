@@ -1,0 +1,17 @@
+branches:
+  - main
+plugins:
+  - - "@semantic-release/commit-analyzer"
+    - preset: conventionalcommits
+  - - "@semantic-release/release-notes-generator"
+    - preset: conventionalcommits
+  - "@semantic-release/changelog"
+  - "@semantic-release/github"
+  - - "@semantic-release/exec"
+    - verifyConditionsCmd: bump-version --dry-run 999.0.0
+      prepareCmd: bump-version ${nextRelease.version}
+  - - "@semantic-release/git"
+    - assets:
+      - CHANGELOG.md
+      - Cargo.lock
+      - Cargo.toml

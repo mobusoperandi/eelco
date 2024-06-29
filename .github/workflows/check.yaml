@@ -2,6 +2,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:
 
 jobs:
   test:
@@ -33,16 +34,3 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: fmt
         run: nix develop --command cargo fmt --check
-
-  release:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    permissions:
-      pull-requests: write
-      contents: write
-    needs: [test, clippy, fmt]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: google-github-actions/release-please-action@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          release-type: rust
