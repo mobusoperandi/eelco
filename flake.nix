@@ -62,8 +62,7 @@
         // {
           inherit cargoArtifacts NIX_CMD_PATH NIX_INSTANTIATE_CMD_PATH;
           nativeCheckInputs = [pkgs.nix];
-          # 1. integration tests execute `nix`, which fails creating `/nix/var`
-          # 2. integration tests require `/dev/ptmx`
+          # integration tests execute `nix`, which fails creating `/nix/var`
           doCheck = false;
         }
       );
