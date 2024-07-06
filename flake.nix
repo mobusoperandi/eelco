@@ -22,6 +22,7 @@
   in
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
+      packages = self.packages.${system};
       toolchain = fenix.packages.${system}.stable.completeToolchain;
       craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
       nixDrv = pkgs.nixVersions.nix_2_21;
@@ -82,5 +83,6 @@
       formatter = treefmtEval.config.build.wrapper;
 
       checks.formatting = treefmtEval.config.build.check self;
+      checks.build = packages.default;
     });
 }
