@@ -1,3 +1,9 @@
+## [2.1.0](https://github.com/mobusoperandi/eelco/compare/v2.0.0...v2.1.0) (2024-07-27)
+
+### Features
+
+* no bail on first unexpected repl char ([d20994d](https://github.com/mobusoperandi/eelco/commit/d20994d5873d522a0c88aea263f7268815b2bfdc))
+
 ## [2.0.0](https://github.com/mobusoperandi/eelco/compare/v1.3.0...v2.0.0) (2024-06-29)
 
 ### ⚠ BREAKING CHANGES
