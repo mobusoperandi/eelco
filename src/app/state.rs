@@ -130,12 +130,18 @@ impl State {
         let output = match &mut session_live.expecting {
             ReplSessionExpecting::ClearlineBeforeInitialPrompt { cl_progress } => {
                 use ClearLineProgressStatus::*;
-                match cl_progress.clone().character(ch)? {
+                match cl_progress.clone().character(ch) {
                     InProgress(progress) => {
                         *cl_progress = progress;
                         vec![]
                     }
                     ReachedEnd => self.next_query(&id)?,
+                    UnexpectedCharacter => {
+                        let mut line = cl_progress.progress().to_owned();
+                        line.push(ch);
+                        session_live.expecting = ReplSessionExpecting::UnexpectedLine { line };
+                        vec![]
+                    }
                 }
             }
             ReplSessionExpecting::ClearLineBeforeResult {
@@ -143,7 +149,7 @@ impl State {
                 expected_result,
             } => {
                 use ClearLineProgressStatus::*;
-                match cl_progress.clone().character(ch)? {
+                match cl_progress.clone().character(ch) {
                     InProgress(progress) => {
                         *cl_progress = progress;
                     }
@@ -153,6 +159,11 @@ impl State {
                                 acc: String::new(),
                                 expected_result: expected_result.clone(),
                             };
+                    }
+                    UnexpectedCharacter => {
+                        let mut line = cl_progress.progress().to_owned();
+                        line.push(ch);
+                        session_live.expecting = ReplSessionExpecting::UnexpectedLine { line };
                     }
                 };
                 vec![]
@@ -189,6 +200,15 @@ impl State {
                 }
 
                 self.next_query(&id)?
+            }
+            ReplSessionExpecting::UnexpectedLine { line } => {
+                line.push(ch);
+
+                if ch == '\n' {
+                    bail!("{id}: unexepcted line: {line}");
+                }
+
+                vec![]
             }
         };
 
@@ -342,23 +362,27 @@ pub(crate) enum ExampleState {
 const CLEAR_LINE: &str = "\r\u{1b}[K";
 
 #[derive(Debug, Clone)]
-pub struct ClearLineProgress(std::iter::Peekable<std::str::Chars<'static>>);
+pub struct ClearLineProgress(std::iter::Peekable<std::iter::Enumerate<std::str::Chars<'static>>>);
 
 impl ClearLineProgress {
-    fn character(mut self, ch: char) -> anyhow::Result<ClearLineProgressStatus> {
-        let expected = self.0.next().unwrap();
+    fn character(mut self, ch: char) -> ClearLineProgressStatus {
+        let (_i, expected) = self.0.next().unwrap();
         if ch != expected {
-            bail!("expected {expected:?}, got {ch:?}")
-        }
-        Ok(if self.0.peek().is_none() {
+            ClearLineProgressStatus::UnexpectedCharacter
+        } else if self.0.peek().is_none() {
             ClearLineProgressStatus::ReachedEnd
         } else {
             ClearLineProgressStatus::InProgress(self)
-        })
+        }
     }
 
     fn new() -> Self {
-        Self(CLEAR_LINE.chars().peekable())
+        Self(CLEAR_LINE.chars().enumerate().peekable())
+    }
+
+    fn progress(&mut self) -> &'static str {
+        let &(i, _) = self.0.peek().unwrap();
+        &CLEAR_LINE[..i]
     }
 }
 
@@ -366,4 +390,19 @@ impl ClearLineProgress {
 enum ClearLineProgressStatus {
     InProgress(ClearLineProgress),
     ReachedEnd,
+    UnexpectedCharacter,
+}
+
+#[cfg(test)]
+mod test {
+    use pretty_assertions::assert_eq;
+
+    use super::ClearLineProgress;
+
+    #[test]
+    fn clear_line_progress() {
+        let mut cl_progress = ClearLineProgress::new();
+        let progress = cl_progress.progress();
+        assert_eq!(progress, "");
+    }
 }
