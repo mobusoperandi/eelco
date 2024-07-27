@@ -18,7 +18,7 @@
     nixpkgs,
     treefmt-nix,
   }: let
-    inherit (nixpkgs.lib) getExe optional mkForce;
+    inherit (nixpkgs.lib) getExe optional mkForce mkBefore;
   in
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
@@ -26,6 +26,7 @@
       toolchain = fenix.packages.${system}.stable.completeToolchain;
       craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
       nixDrv = pkgs.nixVersions.nix_2_21;
+      src = craneLib.cleanCargoSource (craneLib.path ./.);
 
       isolatedNix = postfix:
         pkgs.symlinkJoin {
@@ -45,7 +46,7 @@
       NIX_INSTANTIATE_CMD_PATH = getExe (isolatedNix "-instantiate");
 
       commonArgs = {
-        src = craneLib.cleanCargoSource (craneLib.path ./.);
+        inherit src;
         buildInputs = optional pkgs.stdenv.isDarwin pkgs.iconv;
       };
 
@@ -64,7 +65,7 @@
           inherit cargoArtifacts NIX_CMD_PATH NIX_INSTANTIATE_CMD_PATH;
           nativeCheckInputs = [pkgs.nix];
           # integration tests use nix. can't do that in the sandbox.
-          cargoTestExtraArgs = "--bins";
+          # cargoTestExtraArgs = "--bins";
         }
       );
 
@@ -84,5 +85,40 @@
 
       checks.formatting = treefmtEval.config.build.check self;
       checks.build = packages.default;
+      checks.integration = let
+        nixos-lib = import (nixpkgs + "/nixos/lib") {};
+
+        test-script = pkgs.writeShellScriptBin "test-script" ''
+          set -x
+          cp -r ${src} src
+          chmod --recursive +w src
+          cd src
+          cargo test
+        '';
+      in
+        nixos-lib.runTest {
+          name = "integration";
+          hostPkgs = pkgs;
+
+          nodes.host.users.users.warren.isNormalUser = true;
+
+          nodes.host.environment.systemPackages = [test-script toolchain pkgs.gcc];
+          nodes.host.environment.pathsToLink = ["/src"];
+
+          nodes.host.networking.networkmanager.enable = true;
+          nodes.host.networking.networkmanager.insertNameservers = ["8.8.8.8"];
+          nodes.host.systemd.services.NetworkManager-wait-online.enable = true;
+
+          nodes.host.nix.package = nixDrv;
+          nodes.host.environment.variables = {
+            NIX_CMD_PATH = getExe nixDrv;
+            NIX_INSTANTIATE_CMD_PATH = "${nixDrv}/bin/nix-instantiate";
+          };
+
+          testScript = ''
+            host.wait_for_unit("network-online.target")
+            host.succeed("su - warren -c test-script")
+          '';
+        };
     });
 }
