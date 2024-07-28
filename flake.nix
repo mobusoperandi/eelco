@@ -93,10 +93,10 @@
 
         test-script = pkgs.writeShellScriptBin "test-script" ''
           set -x
-          cp -r ${src} src
+          cp -r ${self} src
           chmod --recursive +w src
           cd src
-          nix build -L --no-sandbox
+          nix --extra-experimental-features "nix-command flakes" build --print-build-logs --no-sandbox
         '';
       in
         nixos-lib.runTest {
