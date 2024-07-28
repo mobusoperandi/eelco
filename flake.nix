@@ -66,11 +66,8 @@
           nativeCheckInputs = [pkgs.nix];
           # integration tests use nix. can't do that in the sandbox.
           # cargoTestExtraArgs = "--bins";
-          preConfigure = ''
-            echo AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            pwd
-            echo $HOME
-            exit 1
+          preCheck = ''
+            export HOME=$NIX_BUILD_TOP/home
           '';
         }
       );
