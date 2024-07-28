@@ -68,8 +68,6 @@
           # cargoTestExtraArgs = "--bins";
           preCheck = ''
             export HOME=$NIX_BUILD_TOP/home
-            echo $FOO
-            exit 1
           '';
         }
       );
