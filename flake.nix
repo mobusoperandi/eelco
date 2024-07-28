@@ -96,7 +96,7 @@
           cp -r ${src} src
           chmod --recursive +w src
           cd src
-          cargo test
+          nix build -L --no-sandbox
         '';
       in
         nixos-lib.runTest {
