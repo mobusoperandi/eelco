@@ -62,7 +62,6 @@
         commonArgs
         // {
           inherit cargoArtifacts NIX_CMD_PATH NIX_INSTANTIATE_CMD_PATH;
-          nativeCheckInputs = [pkgs.nix];
           # integration tests use nix. can't do that in the sandbox.
           cargoTestExtraArgs = "--bins";
         }
