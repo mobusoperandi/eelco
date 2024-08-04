@@ -144,3 +144,27 @@ fn multiline_result() {
             .stderr(format!("PASS: {file_path}:1\n"));
     });
 }
+
+#[test]
+fn handle_early_warning() {
+    with_eelco(|file, eelco| {
+        file.write_str(indoc! {"
+            ```nix-repl
+            nix-repl> { a = 2; b = 3; }
+            {
+              a = 2;
+              b = 3;
+            }
+            
+            ```
+        "})
+            .unwrap();
+
+        let file_path = file.path().to_str().unwrap();
+
+        eelco
+            .assert()
+            .success()
+            .stderr(format!("PASS: {file_path}:1\n"));
+    });
+}
