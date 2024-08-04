@@ -160,7 +160,7 @@ fn handle_early_warning() {
         let file_path = file.path().to_str().unwrap();
 
         eelco
-            .env("NIX_CONFIG", "non-existent-option = 0")
+            .env("NIX_CONFIG", "non-exist-conf = 1")
             .assert()
             .success()
             .stderr(format!("PASS: {file_path}:1\n"));
