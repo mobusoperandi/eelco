@@ -150,11 +150,8 @@ fn handle_early_warning() {
     with_eelco(|file, eelco| {
         file.write_str(indoc! {"
             ```nix-repl
-            nix-repl> { a = 2; b = 3; }
-            {
-              a = 2;
-              b = 3;
-            }
+            nix-repl> true
+            true
             
             ```
         "})
@@ -163,6 +160,7 @@ fn handle_early_warning() {
         let file_path = file.path().to_str().unwrap();
 
         eelco
+            .env("NIX_CONFIG", "non-existent-option = 0")
             .assert()
             .success()
             .stderr(format!("PASS: {file_path}:1\n"));
