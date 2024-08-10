@@ -137,9 +137,7 @@ impl State {
                     }
                     ReachedEnd => self.next_query(&id)?,
                     UnexpectedCharacter => {
-                        let mut line = cl_progress.progress().to_owned();
-                        line.push(ch);
-                        session_live.expecting = ReplSessionExpecting::UnexpectedLine { line };
+                        session_live.expecting = ReplSessionExpecting::UnexpectedLine;
                         vec![]
                     }
                 }
@@ -161,9 +159,7 @@ impl State {
                             };
                     }
                     UnexpectedCharacter => {
-                        let mut line = cl_progress.progress().to_owned();
-                        line.push(ch);
-                        session_live.expecting = ReplSessionExpecting::UnexpectedLine { line };
+                        session_live.expecting = ReplSessionExpecting::UnexpectedLine;
                     }
                 };
                 vec![]
@@ -201,11 +197,11 @@ impl State {
 
                 self.next_query(&id)?
             }
-            ReplSessionExpecting::UnexpectedLine { line } => {
-                line.push(ch);
-
+            ReplSessionExpecting::UnexpectedLine => {
                 if ch == '\n' {
-                    bail!("{id}: unexepcted line: {line}");
+                    session_live.expecting = ReplSessionExpecting::ClearlineBeforeInitialPrompt {
+                        cl_progress: ClearLineProgress::new(),
+                    };
                 }
 
                 vec![]
@@ -379,11 +375,6 @@ impl ClearLineProgress {
     fn new() -> Self {
         Self(CLEAR_LINE.chars().enumerate().peekable())
     }
-
-    fn progress(&mut self) -> &'static str {
-        let &(i, _) = self.0.peek().unwrap();
-        &CLEAR_LINE[..i]
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -391,18 +382,4 @@ enum ClearLineProgressStatus {
     InProgress(ClearLineProgress),
     ReachedEnd,
     UnexpectedCharacter,
-}
-
-#[cfg(test)]
-mod test {
-    use pretty_assertions::assert_eq;
-
-    use super::ClearLineProgress;
-
-    #[test]
-    fn clear_line_progress() {
-        let mut cl_progress = ClearLineProgress::new();
-        let progress = cl_progress.progress();
-        assert_eq!(progress, "");
-    }
 }

@@ -32,12 +32,20 @@
           name = "isolated-nix${postfix}";
           paths = [nixDrv];
           nativeBuildInputs = [pkgs.makeWrapper];
-          postBuild = ''
-            wrapProgram $out/bin/nix${postfix} \
-              --set NIX_CONF_DIR /dev/null \
-              --set NIX_USER_CONF_FILES /dev/null \
-              --unset NIX_CONFIG
-          '';
+          postBuild =
+            ''
+              wrapProgram $out/bin/nix${postfix} \
+                --set NIX_CONF_DIR /dev/null \
+                --set NIX_USER_CONF_FILES /dev/null \
+            ''
+            +
+            # Serves as a test for handling early repl warnings
+            ''
+              --set NIX_CONFIG "
+                intentionally-non-existent-option_a = 1
+                intentionally-non-existent-option_b = 1
+              "
+            '';
           meta.mainProgram = "nix${postfix}";
         };
 
