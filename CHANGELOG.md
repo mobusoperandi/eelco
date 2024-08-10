@@ -1,3 +1,9 @@
+## [2.2.0](https://github.com/mobusoperandi/eelco/compare/v2.1.0...v2.2.0) (2024-08-10)
+
+### Features
+
+* ignore pre-prompt repl warnings ([367389a](https://github.com/mobusoperandi/eelco/commit/367389af822d9d003a5f7155e657724f12b97020))
+
 ## [2.1.0](https://github.com/mobusoperandi/eelco/compare/v2.0.0...v2.1.0) (2024-07-27)
 
 ### Features
