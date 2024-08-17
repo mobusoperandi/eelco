@@ -9,6 +9,8 @@
   inputs.treefmt-nix.url = "github:numtide/treefmt-nix";
   inputs.treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
 
+  nixConfig.sandbox-paths = "/nix/var/nix/daemon-socket/socket";
+
   outputs = {
     self,
     crane,
@@ -70,8 +72,6 @@
         commonArgs
         // {
           inherit cargoArtifacts NIX_CMD_PATH NIX_INSTANTIATE_CMD_PATH;
-          # integration tests use nix. can't do that in the sandbox.
-          cargoTestExtraArgs = "--bins";
         }
       );
 
