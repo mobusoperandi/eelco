@@ -10,6 +10,7 @@ Two kinds of examples are supported:
 
 1. expression examples
 2. repl examples
+3.
 
 Expression examples look like this:
 
