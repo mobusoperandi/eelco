@@ -10,21 +10,32 @@ Two kinds of examples are supported:
 
 1. expression examples
 2. repl examples
-3.
 
 Expression examples look like this:
 
 ````md
 ```nix
-let n = 1 + 1; in assert n == 2; n
+1 + 1
 ```
 ````
 
 They are nix expressions inside of fenced code blocks.
 The first word in their info string is `nix`.
 The expression is passed to Nix for evaluation as `nix-instantiate --expr --eval <EXPRESSION>`.
-It is expected of the author to demonstrate and prove their points
-using assertions.
+Tip: use assertions to prove intermediate values, where appropriate.
+
+If a `nix` fenced code block is followed immediately by 
+Example:
+
+````md
+```nix
+1 + 1
+```
+
+```nix expected-value
+2
+```
+````
 
 Repl exaples look like this;
 
